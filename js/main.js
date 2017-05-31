@@ -5,7 +5,9 @@ var pathToDataSet = 'data/movie_metadata.csv';
 var scatterPlotWidth;
 var scatterPlotHeight;
 var scatterPlotDomainX = [60,260]; // range of values to display on the x axis
-var scatterPlotDomainY = [0,10]; // range of values to display on the x axis
+var scatterPlotDomainY = [10,0]; // range of values to display on the y axis (counted from top left --> beginning with 10)
+var scatterPlotMarginX = [40,40];
+var scatterPlotMarginY = [40,40];
 var scatterPlotX; // scaling function in x direction
 var scatterPlotY; // scaling function in y direction
 
@@ -36,13 +38,17 @@ function finishedLoadingDataset(){
     // calculate scale
     scatterPlotWidth = d3.select('#scatterPlot').node().getBoundingClientRect().width;
     scatterPlotHeight = d3.select('#scatterPlot').node().getBoundingClientRect().height;
-    scatterPlotX = d3.scaleLinear().domain(scatterPlotDomainX).range([40,scatterPlotWidth]); // scale function
-    scatterPlotY = d3.scaleLinear().domain(scatterPlotDomainY).range([40,scatterPlotHeight]); // scale function
+    scatterPlotX = d3.scaleLinear().domain(scatterPlotDomainX).range([scatterPlotMarginX[0],scatterPlotWidth-scatterPlotMarginX[1]]); // scale function
+    scatterPlotY = d3.scaleLinear().domain(scatterPlotDomainY).range([scatterPlotMarginY[0],scatterPlotHeight-scatterPlotMarginY[1]]); // scale function
     // axis
     var xAxis = d3.axisBottom(scatterPlotX);
     var yAxis = d3.axisLeft(scatterPlotY);
-    scatterPlot.append('g').attr('transform','translate(0,40)').call(xAxis);
-    scatterPlot.append('g').attr('transform','translate(40,0)').call(yAxis);
+    var originX = scatterPlotX(scatterPlotDomainX[0]);
+    var originY = scatterPlotY(scatterPlotDomainY[1]); // as y is the other way round (from imdB score 10 to 0)
+    // scatterPlot.append('g').attr('transform','translate('+originX+','+originY+')').call(xAxis);
+    // scatterPlot.append('g').attr('transform','translate('+originX+','+originY+')').call(yAxis);
+    scatterPlot.append('g').attr('transform','translate('+0+','+originY+')').call(xAxis);
+    scatterPlot.append('g').attr('transform','translate('+originX+','+0+')').call(yAxis);
     // var xAxis = d3.svg.axis()
     //     .scale(x)
     //     .orient('bottom')
