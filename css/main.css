@@ -30,6 +30,8 @@ main{
 }
 .scatterPlot {
     height: calc(100% - 80px);
+    vertical-align: middle;
+
 }
 .no-padding {
     padding:0;
@@ -37,3 +39,28 @@ main{
 #centralScatterplotArea{
     z-index:0;
 }
+.center-using-auto-margins{
+ margin-left: auto;
+    margin-right: auto;
+
+}
+.loadingIcon {
+    /*icon height: 50-2*8=34; icon width 34=x-2*15 => x=64 */
+    /*width: 64px;*/
+    /*height: 50px;*/
+    /*padding: 8px 15px;*/
+
+    box-sizing: content-box;
+    width:30px;
+    height:30px;
+    padding-top:10px;
+    padding-bottom:10px;
+}
+
+
+
+/*Animations*/
+.spinning-animation{
+    animation:spin 2s linear infinite;
+}
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }

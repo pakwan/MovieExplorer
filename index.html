@@ -15,7 +15,13 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
+    <!--My CSS-->
     <link rel="stylesheet" href="css/main.css">
+
+    <!--D3-->
+    <script src="https://d3js.org/d3.v4.js"></script>
+
+    <!--My JavaScript-->
     <script src="js/main.js"></script>
 </head>
 <body>
@@ -24,6 +30,7 @@
         <div class="container-fluid">
             <div class="navbar-header">
                 <a class="navbar-brand page-title" href="#">Movie Explorer</a>
+                <img class="loadingIcon navbar-brand spinning-animation" src="img/spinner.png">
             </div>
             <div class="collapse navbar-collapse">
                 <div class="nav navbar-text navbar-right githubfork"><a class="navbar-link" href="https://github.com/pakwan/MovieExplorer">Fork me on Github</a></div>
@@ -42,11 +49,10 @@
         </aside>
         <section id="centralScatterplotArea" class="col-sm-7 full-height no-padding">
             <div id="scatterplot" class="scatterPlot">
-
             </div>
             <div id="yearFilter" class="yearFilter filter-area"></div>
         </section>
-        <aside id="rightFilters" class="filter-area col-sm-3 full-height">
+        <aside id="rightFilters" class="filter-area col-sm-3 full-height .text-center">
 
         </aside>
     </div>
