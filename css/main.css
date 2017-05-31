@@ -56,7 +56,10 @@ main{
     padding-top:10px;
     padding-bottom:10px;
 }
-
+.top-logo{
+    padding-top:10px;
+    padding-bottom:10px;
+}
 
 .hidden{
     visibility: hidden;
@@ -64,6 +67,6 @@ main{
 
 /*Animations*/
 .spinning-animation{
-    animation:spin 2s linear infinite;
+    animation:spin 1s linear 20; /* max 20 spins as my gpu gets hot, if for example because of a breakpoint, the animation spins longer*/
 }
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
