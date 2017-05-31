@@ -58,6 +58,9 @@ main{
 }
 
 
+.hidden{
+    visibility: hidden;
+}
 
 /*Animations*/
 .spinning-animation{
