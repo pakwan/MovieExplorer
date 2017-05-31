@@ -10,6 +10,8 @@ var scatterPlotMarginX = [40,40];
 var scatterPlotMarginY = [40,40];
 var scatterPlotX; // scaling function in x direction
 var scatterPlotY; // scaling function in y direction
+var numberOfGenres;
+var scatterPlotColors; // scaling function to map genre to color
 
 window.onload = function () { // do when page is loaded
     initialization();
@@ -40,6 +42,8 @@ function finishedLoadingDataset(){
     scatterPlotHeight = d3.select('#scatterPlot').node().getBoundingClientRect().height;
     scatterPlotX = d3.scaleLinear().domain(scatterPlotDomainX).range([scatterPlotMarginX[0],scatterPlotWidth-scatterPlotMarginX[1]]); // scale function
     scatterPlotY = d3.scaleLinear().domain(scatterPlotDomainY).range([scatterPlotMarginY[0],scatterPlotHeight-scatterPlotMarginY[1]]); // scale function
+    scatterPlotColors = d3.scaleOrdinal(d3.schemeCategory20);
+
     // axis
     var xAxis = d3.axisBottom(scatterPlotX);
     var yAxis = d3.axisLeft(scatterPlotY);
@@ -48,7 +52,7 @@ function finishedLoadingDataset(){
     scatterPlot.append('g').attr('transform','translate('+0+','+originY+')').call(xAxis);
     scatterPlot.append('g').attr('transform','translate('+originX+','+0+')').call(yAxis);
     // axis labels
-    scatterPlot.append("text")
+    scatterPlot.append("text") //https://stackoverflow.com/questions/11189284/d3-axis-labeling
         // .attr("class", "x label")
         .attr("text-anchor", "end")
         .attr("x", scatterPlotWidth/2)
@@ -94,16 +98,39 @@ function finishedLoadingDataset(){
     //     .attr('dy', '.71em')
     //     .style('text-anchor', 'end')
     //     .text(yCat);
-    
+
     // add items to scatter plot
-    var circlesExistingYet = scatterPlot.selectAll('circle').data(data,keyFunction);
-    var newlyAddedCircles = circlesExistingYet.enter().append('circle');
-    newlyAddedCircles.attr('r', 1)
-        .attr('cx', function(d) {
+    var rectsExistingYet = scatterPlot.selectAll('rect').data(data,keyFunction);
+    var newlyAddedRects = rectsExistingYet.enter().append('rect');
+    newlyAddedRects
+        .attr('x', function(d) {
             return scatterPlotX(d['duration']);
         })
-        .attr('cy', function(d) {
+        .attr('y', function(d) {
             return scatterPlotY(d['imdb_score']);
+        })
+        .attr('rx', function(d) { // roundness of corners
+            if(d['language'].toLowerCase()==='english'){
+                return d['famousness']/2;
+            }else{
+                return 0;
+            }
+        })
+        .attr('width', function(d){
+            return d.famousness;
+        })
+        .attr('height', function(d){
+            return d['famousness'];
+        })
+        .attr('stroke-width', function(d){
+            return Math.min(Math.max(1.0,d['famousness']/10),2.0);
+            // return 1;
+        })
+        .attr('fill', function(){
+            return 'none';
+        })
+        .attr('stroke', function(d){ // color
+            return scatterPlotColors(d['genreColor']);
         });
 
     d3.selectAll('.spinning-animation').classed('hidden', true); //remove loading animation
@@ -138,13 +165,41 @@ function preProcess(item){
     else if(item['content_rating'] === 'X'){item.minAge=18;} // ?
     else if(item['content_rating'] === 'Passed'){item.minAge=15;}
     else if(item['content_rating'] === ''){item.minAge=18;} // Missing
-    else{console.warn('Dont forget the following age rating:',item['content_rating']);}
+    else{console.warn('Don\'t forget the following age rating:',item['content_rating']);}
 
     // map duration from string to integer (the + is doing that!)
     item['duration'] = +item['duration'];
 
     // map duration from string to integer (the + is doing that!)
     item['imdb_score'] = +item['imdb_score'];
+
+    // calculate famousness
+    var numCritics = +item['num_critic_for_reviews'];
+    var numReviews = +item['num_user_for_reviews'];
+    var numVotes = +item['num_voted_users'];
+    item['famousness'] = Math.pow(numCritics*100+numReviews+numVotes, 1/3)/7;
+
+    // get main genre / genre category
+    if(item['genres'].includes('Sci')){item.genre='Fantasy/Sci-Fi';item.genreColor=1;}
+    else if(item['genres'].includes('Animation')){item.genre='Family';item.genreColor=0;}
+    else if(item['genres'].includes('Fantasy')){item.genre='Fantasy/Sci-Fi';item.genreColor=1;}
+    else if(item['genres'].includes('Family')){item.genre='Family';item.genreColor=0;}
+    else if(item['genres'].includes('Thriller')){item.genre='Action';item.genreColor=1;}
+    else if(item['genres'].includes('Adventure')){item.genre='Action';item.genreColor=1;}
+    else if(item['genres'].includes('Romance')){item.genre='Romance/Musical';item.genreColor=0;}
+    else if(item['genres'].includes('Musical')){item.genre='Romance/Musical';item.genreColor=0;}
+    else if(item['genres'].includes('Music')){item.genre='Romance/Musical';item.genreColor=0;}
+    else if(item['genres'].includes('Western')){item.genre='Action';item.genreColor=1;}
+    else if(item['genres'].includes('Biography')){item.genre='Drama';item.genreColor=2;}
+    else if(item['genres'].includes('History')){item.genre='History';item.genreColor=2;}
+    else if(item['genres'].includes('Comedy')){item.genre='Comedy';item.genreColor=4;}
+    else if(item['genres'].includes('Documentary')){item.genre='Documentary';item.genreColor=2;}
+    else if(item['genres'].includes('Drama')){item.genre='Drama';item.genreColor=2;}
+    else if(item['genres'].includes('Horror')){item.genre='Horror';item.genreColor=3;}
+    else if(item['genres'].includes('Crime')){item.genre='Action';item.genreColor=1;}
+    else if(item['genres'].includes('Action')){item.genre='Action';item.genreColor=1;}
+    else {console.warn('Don\'t forget to consider the genre: ',item['genres']);}
+    numberOfGenres = 5;
 
     // delete unnecessary fields
     delete item['actor_1_facebook_likes'];
