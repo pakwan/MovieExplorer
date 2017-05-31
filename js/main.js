@@ -45,10 +45,25 @@ function finishedLoadingDataset(){
     var yAxis = d3.axisLeft(scatterPlotY);
     var originX = scatterPlotX(scatterPlotDomainX[0]);
     var originY = scatterPlotY(scatterPlotDomainY[1]); // as y is the other way round (from imdB score 10 to 0)
-    // scatterPlot.append('g').attr('transform','translate('+originX+','+originY+')').call(xAxis);
-    // scatterPlot.append('g').attr('transform','translate('+originX+','+originY+')').call(yAxis);
     scatterPlot.append('g').attr('transform','translate('+0+','+originY+')').call(xAxis);
     scatterPlot.append('g').attr('transform','translate('+originX+','+0+')').call(yAxis);
+    // axis labels
+    scatterPlot.append("text")
+        // .attr("class", "x label")
+        .attr("text-anchor", "end")
+        .attr("x", scatterPlotWidth/2)
+        .attr("y", scatterPlotHeight - scatterPlotMarginY[1]+30)
+        .text("Duration");
+    scatterPlot.append("text")
+        // .attr("class", "y label")
+        .attr("text-anchor", "end")
+        .attr("x", -scatterPlotHeight/2) // x and y are swapped due to rotation
+        .attr("y", scatterPlotMarginX[0]-20)
+        // .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Score");
+
+
     // var xAxis = d3.svg.axis()
     //     .scale(x)
     //     .orient('bottom')
