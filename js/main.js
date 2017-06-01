@@ -12,6 +12,8 @@ var scatterPlotX; // scaling function in x direction
 var scatterPlotY; // scaling function in y direction
 var numberOfGenres;
 var scatterPlotColors; // scaling function to map genre to color
+var transition;
+var filterLimits;
 
 window.onload = function () { // do when page is loaded
     initialization();
@@ -26,6 +28,22 @@ function initialization() {
     // scatterPlot.style('background','rgba(255, 255, 255, 0.09)');
     // scatterPlot.style('background','yellow');
 
+    // specify transition settings
+    transition = d3.transition().duration(700).delay(100);
+
+    filterLimits = {
+        age:{
+            min: 0,
+            max: 18
+        },
+        duration:{
+            min: scatterPlotDomainX[0],
+            max: scatterPlotDomainX[1]
+        }
+    };
+
+    createSliders();
+
     // load data set
     d3.csv(pathToDataSet, preProcess, function(loadedData){
         data = loadedData;
@@ -33,6 +51,80 @@ function initialization() {
         finishedLoadingDataset();
     });
 
+
+}
+
+function update(){
+    // add items to scatter plot
+    var rectsExistingYet = scatterPlot.selectAll('rect')
+        .data(data.filter(function(d) {
+                return filterLimits.duration.min <= d.duration && d.duration <= filterLimits.duration.max
+                    && filterLimits.age.min <= d.minAge && d.minAge <= filterLimits.age.max;
+            }),
+            keyFunction);
+    rectsExistingYet.exit().remove();
+    var newlyAddedRects = rectsExistingYet.enter().append('rect');
+    newlyAddedRects
+        .attr('x', function(d) {
+            return scatterPlotX(d['duration']);
+        })
+        .attr('y', function(d) {
+            return scatterPlotY(d['imdb_score']);
+        })
+        .attr('rx', function(d) { // roundness of corners
+            if(d['language'].toLowerCase()==='english'){
+                return d['famousness']/2;
+            }else{
+                return 0;
+            }
+        })
+        .attr('width', function(){
+            // return d.famousness;
+            return 0; // transition is handling this (see below)
+        })
+        .attr('height', function(){
+            // return d['famousness'];
+            return 0; // transition is handling this (see below)
+        })
+        .attr('stroke-width', function(d){
+            return Math.min(Math.max(1.0,d['famousness']/10),2.0);
+            // return 1;
+        })
+        .attr('fill', function(){
+            return 'transparent';
+        })
+        .attr('stroke', function(d){ // color
+            return scatterPlotColors(d['genreColor']);
+        })
+        .on("mouseover", function(){
+            d3.select(this).transition().duration(300)
+                .attr('width', function(d){return 2*d.famousness;})
+                .attr('height', function(d){return 2*d.famousness;})
+                .attr('x', function(d) {return scatterPlotX(d['duration'])-d.famousness/2;})
+                .attr('y', function(d) {return scatterPlotY(d['imdb_score'])-d.famousness/2;})
+                .attr('rx', function(d) { // roundness of corners
+                    if(d['language'].toLowerCase()==='english'){return 2*d['famousness']/2;
+                    }else{return 0;}
+                });
+        })
+        .on("mouseout", function(){
+            d3.select(this).transition().duration(300)
+                .attr('width', function(d){return d.famousness;})
+                .attr('height', function(d){return d.famousness;})
+                .attr('x', function(d) {return scatterPlotX(d['duration']);})
+                .attr('y', function(d) {return scatterPlotY(d['imdb_score']);})
+                .attr('rx', function(d) { // roundness of corners
+                    if(d['language'].toLowerCase()==='english'){return d['famousness']/2;
+                    }else{return 0;}
+                });
+        })
+        .transition(transition)
+        .attr('width', function(d){
+            return d.famousness;
+        })
+        .attr('height', function(d){
+            return d.famousness;
+        })
 
 }
 
@@ -99,39 +191,7 @@ function finishedLoadingDataset(){
     //     .style('text-anchor', 'end')
     //     .text(yCat);
 
-    // add items to scatter plot
-    var rectsExistingYet = scatterPlot.selectAll('rect').data(data,keyFunction);
-    var newlyAddedRects = rectsExistingYet.enter().append('rect');
-    newlyAddedRects
-        .attr('x', function(d) {
-            return scatterPlotX(d['duration']);
-        })
-        .attr('y', function(d) {
-            return scatterPlotY(d['imdb_score']);
-        })
-        .attr('rx', function(d) { // roundness of corners
-            if(d['language'].toLowerCase()==='english'){
-                return d['famousness']/2;
-            }else{
-                return 0;
-            }
-        })
-        .attr('width', function(d){
-            return d.famousness;
-        })
-        .attr('height', function(d){
-            return d['famousness'];
-        })
-        .attr('stroke-width', function(d){
-            return Math.min(Math.max(1.0,d['famousness']/10),2.0);
-            // return 1;
-        })
-        .attr('fill', function(){
-            return 'none';
-        })
-        .attr('stroke', function(d){ // color
-            return scatterPlotColors(d['genreColor']);
-        });
+    update();
 
     d3.selectAll('.spinning-animation').classed('hidden', true); //remove loading animation
     console.log('Initialization finished!');
@@ -140,6 +200,47 @@ function finishedLoadingDataset(){
 // tells d3 if two objects are the same. Comparable to Java equals function but only returns a key
 function keyFunction(d){
     return d['movie_title'];
+}
+
+function createSliders(){
+
+
+    var ageSlider = document.getElementById('minimumAgeSlider');
+    noUiSlider.create(ageSlider, {
+        start: [ 0, 18 ],
+        range: {
+            'min': [  0 ],
+            'max': [ 18 ]
+        },
+        pips: {
+            mode: 'range',
+            density: 18
+        },
+        tooltips: [numberFormatter(0), numberFormatter(0)] // transform numbers to correct format
+
+    });
+    var i=0;
+    ageSlider.noUiSlider.on('update',function (values, handle) {
+        i++;
+        var thisValue = i;
+        filterLimits.age.min = values[0];
+        filterLimits.age.max = values[1];
+        setTimeout(function(){
+            if(i==thisValue){
+                console.log('Updated:',filterLimits.age.min,filterLimits.age.max,handle);
+                update();
+            }
+        },100);
+
+    });
+
+}
+
+function numberFormatter(digits){
+    return {
+        to: function(value){return value.toFixed(digits);},
+        from: function(value){return +value;}
+    }
 }
 
 // Process data items from the csv
@@ -168,16 +269,16 @@ function preProcess(item){
     else{console.warn('Don\'t forget the following age rating:',item['content_rating']);}
 
     // map duration from string to integer (the + is doing that!)
-    item['duration'] = +item['duration'];
+    item.duration = +item['duration'];
 
     // map duration from string to integer (the + is doing that!)
-    item['imdb_score'] = +item['imdb_score'];
+    item.imdb_score = +item['imdb_score'];
 
     // calculate famousness
     var numCritics = +item['num_critic_for_reviews'];
     var numReviews = +item['num_user_for_reviews'];
     var numVotes = +item['num_voted_users'];
-    item['famousness'] = Math.pow(numCritics*100+numReviews+numVotes, 1/3)/7;
+    item.famousness = Math.pow(numCritics*100+numReviews+numVotes, 1/3)/7;
 
     // get main genre / genre category
     if(item['genres'].includes('Sci')){item.genre='Fantasy/Sci-Fi';item.genreColor=1;}

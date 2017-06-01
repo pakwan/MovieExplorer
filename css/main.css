@@ -28,10 +28,23 @@ main{
 .yearFilter {
     height:80px;
 }
+.filter-info{
+    color: #7b7b7b;
+    font-size:0.7em;
+    margin-top:8px;
+}
+
 .scatterPlot {
     height: calc(100% - 80px);
     vertical-align: middle;
 
+}
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
 }
 .no-padding {
     padding:0;
@@ -67,6 +80,6 @@ main{
 
 /*Animations*/
 .spinning-animation{
-    animation:spin 0.7s cubic-bezier(0.64, 0.3, 0.33, 0.64) 20; /* max 20 spins as my gpu gets hot, if for example because of a breakpoint, the animation spins longer*/
+    animation:spin 1.4s cubic-bezier(0.64, 0.3, 0.33, 0.64) 20; /* max 20 spins as my gpu gets hot, if for example because of a breakpoint, the animation spins longer*/
 }
-@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+@keyframes spin { 100% { -webkit-transform: rotate(720deg); transform:rotate(720deg); } }
