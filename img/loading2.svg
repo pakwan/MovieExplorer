@@ -1,0 +1,10 @@
+<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+ <g>
+  <title>Layer 1</title>
+  <ellipse opacity="0.8" ry="1" rx="1" id="svg_1" cy="2" cx="2" stroke-width="2" stroke="#000" fill="#fff"/>
+  <!--<ellipse opacity="0.8" ry="1" rx="1" id="svg_2" cy="8" cx="8" stroke-width="2" stroke="#000" fill="#fff"/>-->
+  <!--<ellipse opacity="0.8" ry="1" rx="1" id="svg_3" cy="2" cx="8" stroke-width="2" stroke="#000" fill="#fff"/>-->
+  <!--<ellipse opacity="0.8" ry="1" rx="1" id="svg_4" cy="8" cx="2" stroke-width="2" stroke="#000" fill="#fff"/>-->
+ </g>
+</svg>
