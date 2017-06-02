@@ -78,6 +78,40 @@ main{
     visibility: hidden;
 }
 
+
+/*Slider customization*/
+.noUi-horizontal .noUi-base .noUi-handle {
+    width: 16px;
+    height: 28px;
+    left: -8px;
+    top: -8px;
+}
+.noUi-horizontal .noUi-base  .noUi-handle:after, .noUi-horizontal .noUi-base .noUi-handle:before {
+    display: none;
+}
+.noUi-horizontal .noUi-base  .noUi-handle .noUi-tooltip {
+    font-size: 0.9em;
+    bottom: 110%;
+    padding: 3px;
+}
+.noUi-horizontal {
+    height: 14px;
+}
+.noUi-pips .noUi-marker.noUi-marker-horizontal {
+    background: #d8d8d8;
+    width: 1px;
+    height: 5px;
+}
+.noUi-pips.no-Ui-pips-horizontal{
+    top: 62%;
+}
+.noUi-horizontal svg {
+    position: absolute;
+    top: 0;
+    z-index: 0;
+    box-shadow: rgba(75, 82, 87, 0.45) 0 0 3px 1px;
+}
+
 /*Animations*/
 .spinning-animation{
     animation:spin 1.4s cubic-bezier(0.64, 0.3, 0.33, 0.64) 20; /* max 20 spins as my gpu gets hot, if for example because of a breakpoint, the animation spins longer*/

@@ -42,8 +42,6 @@ function initialization() {
         }
     };
 
-    createSliders();
-
     // load data set
     d3.csv(pathToDataSet, preProcess, function(loadedData){
         data = loadedData;
@@ -129,6 +127,8 @@ function update(){
 }
 
 function finishedLoadingDataset(){
+    createSliders();
+
     // calculate scale
     scatterPlotWidth = d3.select('#scatterPlot').node().getBoundingClientRect().width;
     scatterPlotHeight = d3.select('#scatterPlot').node().getBoundingClientRect().height;
@@ -159,38 +159,6 @@ function finishedLoadingDataset(){
         .attr("transform", "rotate(-90)")
         .text("Score");
 
-
-    // var xAxis = d3.svg.axis()
-    //     .scale(x)
-    //     .orient('bottom')
-    //     .tickSize(-height);
-    //
-    // var yAxis = d3.svg.axis()
-    //     .scale(y)
-    //     .orient('left')
-    //     .tickSize(-width);
-    // svg.append('g')
-    //     .classed('x axis', true)
-    //     .attr('transform', 'translate(0,' + height + ')')
-    //     .call(xAxis)
-    //     .append('text')
-    //     .classed('label', true)
-    //     .attr('x', width)
-    //     .attr('y', margin.bottom - 10)
-    //     .style('text-anchor', 'end')
-    //     .text(xCat);
-    //
-    // svg.append('g')
-    //     .classed('y axis', true)
-    //     .call(yAxis)
-    //     .append('text')
-    //     .classed('label', true)
-    //     .attr('transform', 'rotate(-90)')
-    //     .attr('y', -margin.left)
-    //     .attr('dy', '.71em')
-    //     .style('text-anchor', 'end')
-    //     .text(yCat);
-
     update();
 
     d3.selectAll('.spinning-animation').classed('hidden', true); //remove loading animation
@@ -220,20 +188,44 @@ function createSliders(){
 
     });
     var i=0;
+    var timeOfLastUpdate = 0;
     ageSlider.noUiSlider.on('update',function (values, handle) {
         i++;
         var thisValue = i;
+        console.log('Update requested:',filterLimits.age.min,filterLimits.age.max,handle,i);
         filterLimits.age.min = values[0];
         filterLimits.age.max = values[1];
         setTimeout(function(){
-            if(i==thisValue){
+            // only update if: last event (slider is not moved anymore) || every 300ms
+            if(i==thisValue || (new Date()).getTime()-timeOfLastUpdate>300){
+                timeOfLastUpdate = (new Date()).getTime();
                 console.log('Updated:',filterLimits.age.min,filterLimits.age.max,handle);
                 update();
             }
         },100);
-
     });
 
+    // create color-coding of slider bar
+    var whiteToBlack = d3.scaleLinear().domain([0,1]).range(["white", "black"]);
+    var groupedMinAges = d3.nest()
+        .key(function(d){return d.minAge}) // group by minAge
+        .rollup(function(values){return d3.sum(values,function(){return 1;})}) // calculate number of movies per group (minAge)
+        .entries(data); // do all that with the data object
+    groupedMinAges.sort(function(x, y){return d3.ascending(+x.key, +y.key);});
+    var maxMovieCountPerMinAge = d3.max(groupedMinAges, function(d) { return +d.value;} );
+    // plot this to the slider
+    var minAgeSliderBackground = d3.select('#minimumAgeSlider').append('svg').attr('width','100%').attr('height','100%');
+    var width = d3.select('#minimumAgeSlider').node().getBoundingClientRect().width;
+    var height = d3.select('#minimumAgeSlider').node().getBoundingClientRect().height;
+    var x = d3.scaleLinear().domain([0,19]).range([0,width]); // scale function
+    minAgeSliderBackground.selectAll('rect').data(groupedMinAges).enter().append('rect')
+        // .attr('width', function(d){return x(19-d.key);})
+        .attr('width', function(){return x(1);})
+        .attr('height', function(){return height;})
+        .attr('x', function(d) {return x(+d.key)})
+        .attr('y', function() {return 0;})
+        .attr('age', function(d){return d.key;})
+        .attr('fill', function(d){return whiteToBlack((+d.value)/maxMovieCountPerMinAge);});//d3.interpolateGreys(+d.value)});
 }
 
 function numberFormatter(digits){
