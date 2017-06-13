@@ -196,12 +196,12 @@ function keyFunction(d){
 }
 
 function createSliders() {
-    createSlider('minimumAgeSlider','minAge');
-    createSlider('scoreSlider','imdb_score');
-    createSlider('durationSlider','duration');
-    createSlider('famousSlider','famousness');
+    // createSlider('minimumAgeSlider','minAge');
+    // createSlider('scoreSlider','imdb_score');
+    // createSlider('durationSlider','duration');
+    // createSlider('famousSlider','famousness');
     createSlider('grossBudgetSlider','grossPerBudget');
-    createSlider('socialMediaSlider','socialMediaPopularity');
+    // createSlider('socialMediaSlider','socialMediaPopularity');
 }
 function createSlider(container, dataFieldName){
     var slider = document.getElementById(container);
@@ -211,10 +211,10 @@ function createSlider(container, dataFieldName){
             'min': [  filterLimits[dataFieldName].min ],
             'max': [ filterLimits[dataFieldName].max ]
         },
-        pips: {
-            mode: 'range',
-            density: 18
-        },
+        // pips: {
+        //     mode: 'range',
+        //     density: 18
+        // },
         tooltips: [numberFormatter(0), numberFormatter(0)] // transform numbers to correct format
 
     });
@@ -239,11 +239,34 @@ function createSlider(container, dataFieldName){
     // create color-coding of slider bar
     var whiteToBlack = d3.scaleLinear().domain([0,1]).range(["white", "black"]);
     var groupedData = d3.nest()
-        .key(function(d){return d[dataFieldName]}) // group by property, ex. by minAge
+        .key(function(d){return +d[dataFieldName]}) // group by property, ex. by minAge
         .rollup(function(values){return d3.sum(values,function(){return 1;})}) // calculate number of movies per group (property)
         .entries(data); // do all that with the data object
+    var nrBins = 100;
+    if(groupedData.length>nrBins){ // limit color coded background to 100 bins / rects
+        var maxValue = d3.max(data, function(d){return +d[dataFieldName];});
+        var minValue = d3.min(data, function(d){return +d[dataFieldName];});
+        var stepWidth = (maxValue-minValue)/nrBins;
+        groupedData = d3.nest()
+            .key(function(d){return +Math.floor((d[dataFieldName]-minValue)/stepWidth);}) // group by property, ex. by minAge
+            .rollup(function(values){return d3.sum(values,function(){return 1;})}) // calculate number of movies per group (property)
+            .entries(data); // do all that with the data object
+
+        // add empty bins if necessary
+        groupedData.sort(function(x, y){return d3.ascending(+x.key, +y.key);});
+        var nrGroups = groupedData.length;
+        for(var b = 0; b<nrGroups; b++){
+            // var shouldBe = minValue+b*stepWidth;
+            var shouldBe = b;
+            if(groupedData[b].key !== shouldBe){
+                console.log('grouped data item should be ',shouldBe,' but is ',groupedData[b].key, groupedData);
+                groupedData.push({key:shouldBe,value:0}); // add missing empty group
+            }
+        }
+    }
+    groupedData.sort(function(x, y){return d3.descending(+x.value, +y.value);}); // sort so we can take the second highest value in next step
+    var maxMovieCountPerProperty = groupedData[1].value; // take second highest value (highest value could be outlier, group of default values etc)
     groupedData.sort(function(x, y){return d3.ascending(+x.key, +y.key);});
-    var maxMovieCountPerProperty = d3.max(groupedData, function(d) { return +d.value;} );
     // plot this to the slider
     var sliderBackground = d3.select('#'+container).append('svg').attr('width','100%').attr('height','100%');
     var width = d3.select('#'+container).node().getBoundingClientRect().width;
@@ -251,7 +274,7 @@ function createSlider(container, dataFieldName){
     var x = d3.scaleLinear().domain([filterLimits[dataFieldName].min,filterLimits[dataFieldName].max]).range([0,width]); // scale function
     sliderBackground.selectAll('rect').data(groupedData).enter().append('rect')
         // .attr('width', function(d){return x(19-d.key);})
-        .attr('width', function(){return x(1);})
+        .attr('width', function(){return width/groupedData.length;})
         .attr('height', function(){return height;})
         .attr('x', function(d) {return x(+d.key)})
         .attr('y', function() {return 0;})
@@ -310,7 +333,14 @@ function preProcess(item){
     +item['cast_total_facebook_likes'];
 
     // calculate gross per budget
-    item.grossPerBudget = item['gross']/item['budget'];
+    if(item['gross']===0 || item['gross']==='' || item['budget']===0 || item['budget']===''){
+        item.grossPerBudget = 1; // assume the movie has generated around the same as it had budget (should be around the mean)
+    } else {
+        item.grossPerBudget = item['gross']/item['budget'];
+    }
+    if(item.grossPerBudget=='Infinity'){
+        console.warn(item.grossPerBudget,item.gross,item.budget);
+    }
 
     // get main genre / genre category
     if(item['genres'].includes('Sci')){item.genre='Fantasy/Sci-Fi';item.genreColor=1;}
