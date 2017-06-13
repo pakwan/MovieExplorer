@@ -21,6 +21,12 @@ main{
     box-shadow: rgba(75, 82, 87, 0.45) 0 0 3px 2px;
     border-color: #e7e7e7;
 }
+.filterContainer{
+    margin-top: 20px;
+}
+.filterContainer .noUi-target {
+    margin-bottom: 37px;
+}
 
 .full-height {
     height:100%;
@@ -104,8 +110,9 @@ main{
 }
 .noUi-horizontal .noUi-base  .noUi-handle .noUi-tooltip {
     font-size: 0.9em;
-    bottom: 110%;
+    bottom: initial;
     padding: 3px;
+    top: 109%;
 }
 .noUi-horizontal {
     height: 14px;
