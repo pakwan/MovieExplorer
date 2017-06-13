@@ -46,15 +46,15 @@ function initialization() {
         },
         famousness:{
             min:0,
-            max:4
+            max:14
         },
         grossPerBudget:{
             min:0,
-            max:30
+            max:15
         },
         socialMediaPopularity:{
             min:0,
-            max:100000
+            max:80
         }
     };
     filterLimits = JSON.parse(JSON.stringify(initialFilterLimits));
@@ -120,13 +120,14 @@ function update(){
             return scatterPlotColors(d['genreColor']);
         })
         .on("mouseover", function(){
+            var minSizeOnHover = 15; // 15 pixel minimum size of items when hovered
             d3.select(this).transition().duration(300)
-                .attr('width', function(d){return 2*d.famousness;})
-                .attr('height', function(d){return 2*d.famousness;})
-                .attr('x', function(d) {return scatterPlotX(d['duration'])-d.famousness/2;})
-                .attr('y', function(d) {return scatterPlotY(d['imdb_score'])-d.famousness/2;})
+                .attr('width', function(d){return Math.max(minSizeOnHover,2*d.famousness);})
+                .attr('height', function(d){return Math.max(minSizeOnHover,2*d.famousness);})
+                .attr('x', function(d) {return scatterPlotX(d['duration'])-Math.max(minSizeOnHover/2,d.famousness)/2;})
+                .attr('y', function(d) {return scatterPlotY(d['imdb_score'])-Math.max(minSizeOnHover/2,d.famousness)/2;})
                 .attr('rx', function(d) { // roundness of corners
-                    if(d['language'].toLowerCase()==='english'){return 2*d['famousness']/2;
+                    if(d['language'].toLowerCase()==='english'){return Math.max(2*d['famousness'],minSizeOnHover)/2;
                     }else{return 0;}
                 });
         })
@@ -196,12 +197,12 @@ function keyFunction(d){
 }
 
 function createSliders() {
-    // createSlider('minimumAgeSlider','minAge');
-    // createSlider('scoreSlider','imdb_score');
-    // createSlider('durationSlider','duration');
-    // createSlider('famousSlider','famousness');
+    createSlider('minimumAgeSlider','minAge');
+    createSlider('scoreSlider','imdb_score');
+    createSlider('durationSlider','duration');
+    createSlider('famousSlider','famousness');
     createSlider('grossBudgetSlider','grossPerBudget');
-    // createSlider('socialMediaSlider','socialMediaPopularity');
+    createSlider('socialMediaSlider','socialMediaPopularity');
 }
 function createSlider(container, dataFieldName){
     var slider = document.getElementById(container);
@@ -242,28 +243,31 @@ function createSlider(container, dataFieldName){
         .key(function(d){return +d[dataFieldName]}) // group by property, ex. by minAge
         .rollup(function(values){return d3.sum(values,function(){return 1;})}) // calculate number of movies per group (property)
         .entries(data); // do all that with the data object
-    var nrBins = 100;
-    if(groupedData.length>nrBins){ // limit color coded background to 100 bins / rects
-        var maxValue = d3.max(data, function(d){return +d[dataFieldName];});
-        var minValue = d3.min(data, function(d){return +d[dataFieldName];});
-        var stepWidth = (maxValue-minValue)/nrBins;
-        groupedData = d3.nest()
-            .key(function(d){return +Math.floor((d[dataFieldName]-minValue)/stepWidth);}) // group by property, ex. by minAge
-            .rollup(function(values){return d3.sum(values,function(){return 1;})}) // calculate number of movies per group (property)
-            .entries(data); // do all that with the data object
+    // data should be grouped now and counted, but empty bins are missing (ex.: 1: 42, 2: 10, 4:15,...--> bin 3 missing)
+    var nrBins = Math.min(100,groupedData.length); // limit color coded background to 100 bins / rects
+    // var maxValue = d3.max(data, function(d){return +d[dataFieldName];});
+    // var minValue = d3.min(data, function(d){return +d[dataFieldName];});
+    var maxValue = filterLimits[dataFieldName].max;
+    var minValue = filterLimits[dataFieldName].min;
+    var stepWidth = (maxValue-minValue)/nrBins;
+    groupedData = d3.nest()
+        .key(function(d){return Math.max(Math.min(Math.floor((d[dataFieldName]-minValue)/stepWidth),nrBins-1),0);}) // group by property, ex. by minAge. (The min with nrBins-1 is necessary because else the max value is projected into an own bin
+        .rollup(function(values){return d3.sum(values,function(){return 1;})}) // calculate number of movies per group (property)
+        .entries(data); // do all that with the data object
 
-        // add empty bins if necessary
-        groupedData.sort(function(x, y){return d3.ascending(+x.key, +y.key);});
-        var nrGroups = groupedData.length;
-        for(var b = 0; b<nrGroups; b++){
-            // var shouldBe = minValue+b*stepWidth;
-            var shouldBe = b;
-            if(groupedData[b].key !== shouldBe){
-                console.log('grouped data item should be ',shouldBe,' but is ',groupedData[b].key, groupedData);
-                groupedData.push({key:shouldBe,value:0}); // add missing empty group
-            }
+    // add empty bins if necessary
+    groupedData.sort(function(x, y){return d3.ascending(+x.key, +y.key);});
+    var nrGroups = groupedData.length;
+    var shouldBeBin = 0;
+    for(var b = 0; b<nrGroups; b++){
+        while(+groupedData[b].key !== shouldBeBin){
+            console.log('Add empty bin ',shouldBeBin, ' because existing key is ', groupedData[b]);
+            groupedData.push({key:shouldBeBin,value:0}); // add missing empty group
+            shouldBeBin++;
         }
+        shouldBeBin++;
     }
+
     groupedData.sort(function(x, y){return d3.descending(+x.value, +y.value);}); // sort so we can take the second highest value in next step
     var maxMovieCountPerProperty = groupedData[1].value; // take second highest value (highest value could be outlier, group of default values etc)
     groupedData.sort(function(x, y){return d3.ascending(+x.key, +y.key);});
@@ -271,14 +275,14 @@ function createSlider(container, dataFieldName){
     var sliderBackground = d3.select('#'+container).append('svg').attr('width','100%').attr('height','100%');
     var width = d3.select('#'+container).node().getBoundingClientRect().width;
     var height = d3.select('#'+container).node().getBoundingClientRect().height;
-    var x = d3.scaleLinear().domain([filterLimits[dataFieldName].min,filterLimits[dataFieldName].max]).range([0,width]); // scale function
+    var x = d3.scaleLinear().domain([0,nrBins]).range([0,width]); // scale function
     sliderBackground.selectAll('rect').data(groupedData).enter().append('rect')
         // .attr('width', function(d){return x(19-d.key);})
-        .attr('width', function(){return width/groupedData.length;})
+        .attr('width', function(){return width/groupedData.length+1;}) // +1 else there is a strange gap between the bars
         .attr('height', function(){return height;})
         .attr('x', function(d) {return x(+d.key)})
         .attr('y', function() {return 0;})
-        .attr('age', function(d){return d.key;})
+        .attr('debugInfo', function(d){return d.key+':'+d.value;})
         .attr('fill', function(d){return whiteToBlack((+d.value)/maxMovieCountPerProperty);});//d3.interpolateGreys(+d.value)});
 }
 
@@ -328,9 +332,11 @@ function preProcess(item){
 
     // calculate social media popularity
     item.socialMediaPopularity =
-    5*item['movie_facebook_likes']
-    +item['director_facebook_likes']
-    +item['cast_total_facebook_likes'];
+        5*item['movie_facebook_likes']
+        +item['director_facebook_likes']
+        +item['cast_total_facebook_likes'];
+    item.socialMediaPopularity = Math.sqrt(Math.sqrt(Math.sqrt(item.socialMediaPopularity)));
+    item.socialMediaPopularity = Math.min(item.socialMediaPopularity, filterLimits.socialMediaPopularity.max);
 
     // calculate gross per budget
     if(item['gross']===0 || item['gross']==='' || item['budget']===0 || item['budget']===''){
@@ -338,9 +344,8 @@ function preProcess(item){
     } else {
         item.grossPerBudget = item['gross']/item['budget'];
     }
-    if(item.grossPerBudget=='Infinity'){
-        console.warn(item.grossPerBudget,item.gross,item.budget);
-    }
+    item.grossPerBudget = Math.min(item.grossPerBudget, filterLimits.grossPerBudget.max);
+
 
     // get main genre / genre category
     if(item['genres'].includes('Sci')){item.genre='Fantasy/Sci-Fi';item.genreColor=1;}
