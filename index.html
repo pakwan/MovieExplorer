@@ -12,6 +12,7 @@
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="lib/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
     <!--My CSS-->
@@ -46,10 +47,30 @@
             <div>
                 <h4>Minimum Age</h4>
                 <div id="minimumAgeSlider"></div>
-                <div class="row">
+                <!--<div class="row">-->
                     <!--<span id="minimumAgeSliderMin" class="filter-info col-sm-1">0</span>-->
                     <!--<span id="minimumAgeSliderMax" class="pull-right filter-info col-sm-1">18</span>-->
-                </div>
+                <!--</div>-->
+            </div>
+            <div>
+                <h4>Score</h4>
+                <div id="scoreSlider"></div>
+            </div>
+            <div>
+                <h4>Duration</h4>
+                <div id="durationSlider"></div>
+            </div>
+            <div>
+                <h4>Famousness</h4>
+                <div id="famousSlider"></div>
+            </div>
+            <div>
+                <h4>Gross per Budget</h4>
+                <div id="grossBudgetSlider"></div>
+            </div>
+            <div>
+                <h4>Social Media Popilarity</h4>
+                <div id="socialMediaSlider"></div>
             </div>
         </aside>
         <section id="centralScatterplotArea" class="col-sm-7 full-height no-padding">
@@ -68,8 +89,17 @@
 <!--Load Javascript-->
 <!--D3-->
 <script src="https://d3js.org/d3.v4.js"></script>
+<script>
+    if(window.d3===undefined){
+        console.log('Loading alternative local d3');
+        document.write('<script src=\'lib/d3.v4.js\'><\/script>');
+    }
+</script>
+<!--<script src='lib/d3.v4.js'></script>-->
+
 <!--Multi-Handle-Slider-->
 <script src="lib/nouislider.min.js"></script>
+
 <!--My script-->
 <script src="js/main.js"></script>
 </body>

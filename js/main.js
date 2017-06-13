@@ -31,16 +31,33 @@ function initialization() {
     // specify transition settings
     transition = d3.transition().duration(700).delay(100);
 
-    filterLimits = {
-        age:{
+    initialFilterLimits = {
+        minAge:{
             min: 0,
             max: 18
         },
         duration:{
             min: scatterPlotDomainX[0],
             max: scatterPlotDomainX[1]
+        },
+        imdb_score:{
+            min: 0,
+            max: 10
+        },
+        famousness:{
+            min:0,
+            max:4
+        },
+        grossPerBudget:{
+            min:0,
+            max:30
+        },
+        socialMediaPopularity:{
+            min:0,
+            max:100000
         }
     };
+    filterLimits = JSON.parse(JSON.stringify(initialFilterLimits));
 
     // load data set
     d3.csv(pathToDataSet, preProcess, function(loadedData){
@@ -56,8 +73,16 @@ function update(){
     // add items to scatter plot
     var rectsExistingYet = scatterPlot.selectAll('rect')
         .data(data.filter(function(d) {
-                return filterLimits.duration.min <= d.duration && d.duration <= filterLimits.duration.max
-                    && filterLimits.age.min <= d.minAge && d.minAge <= filterLimits.age.max;
+                for(var property in filterLimits){
+                    if(filterLimits.hasOwnProperty(property)){
+                        // if(+filterLimits[property].max!==+initialFilterLimits[property].max){console.log(filterLimits[property].max,initialFilterLimits[property].max);}
+                        if((+filterLimits[property].max!==+initialFilterLimits[property].max && d[property]>filterLimits[property].max)
+                            || (+filterLimits[property].min!==+initialFilterLimits[property].min && d[property]<filterLimits[property].min)){
+                            return false;
+                        }
+                    }
+                }
+                return true;
             }),
             keyFunction);
     rectsExistingYet.exit().remove();
@@ -170,15 +195,21 @@ function keyFunction(d){
     return d['movie_title'];
 }
 
-function createSliders(){
-
-
-    var ageSlider = document.getElementById('minimumAgeSlider');
-    noUiSlider.create(ageSlider, {
-        start: [ 0, 18 ],
+function createSliders() {
+    createSlider('minimumAgeSlider','minAge');
+    createSlider('scoreSlider','imdb_score');
+    createSlider('durationSlider','duration');
+    createSlider('famousSlider','famousness');
+    createSlider('grossBudgetSlider','grossPerBudget');
+    createSlider('socialMediaSlider','socialMediaPopularity');
+}
+function createSlider(container, dataFieldName){
+    var slider = document.getElementById(container);
+    noUiSlider.create(slider, {
+        start: [ filterLimits[dataFieldName].min, filterLimits[dataFieldName].max ],
         range: {
-            'min': [  0 ],
-            'max': [ 18 ]
+            'min': [  filterLimits[dataFieldName].min ],
+            'max': [ filterLimits[dataFieldName].max ]
         },
         pips: {
             mode: 'range',
@@ -189,17 +220,17 @@ function createSliders(){
     });
     var i=0;
     var timeOfLastUpdate = 0;
-    ageSlider.noUiSlider.on('update',function (values, handle) {
+    slider.noUiSlider.on('update',function (values, handle) {
         i++;
         var thisValue = i;
-        console.log('Update requested:',filterLimits.age.min,filterLimits.age.max,handle,i);
-        filterLimits.age.min = values[0];
-        filterLimits.age.max = values[1];
+        console.log('Update requested:',filterLimits[dataFieldName].min,filterLimits[dataFieldName].max,handle,i);
+        filterLimits[dataFieldName].min = values[0];
+        filterLimits[dataFieldName].max = values[1];
         setTimeout(function(){
             // only update if: last event (slider is not moved anymore) || every 300ms
             if(i==thisValue || (new Date()).getTime()-timeOfLastUpdate>300){
                 timeOfLastUpdate = (new Date()).getTime();
-                console.log('Updated:',filterLimits.age.min,filterLimits.age.max,handle);
+                console.log('Updated:',filterLimits[dataFieldName].min,filterLimits[dataFieldName].max,handle);
                 update();
             }
         },100);
@@ -207,25 +238,25 @@ function createSliders(){
 
     // create color-coding of slider bar
     var whiteToBlack = d3.scaleLinear().domain([0,1]).range(["white", "black"]);
-    var groupedMinAges = d3.nest()
-        .key(function(d){return d.minAge}) // group by minAge
-        .rollup(function(values){return d3.sum(values,function(){return 1;})}) // calculate number of movies per group (minAge)
+    var groupedData = d3.nest()
+        .key(function(d){return d[dataFieldName]}) // group by property, ex. by minAge
+        .rollup(function(values){return d3.sum(values,function(){return 1;})}) // calculate number of movies per group (property)
         .entries(data); // do all that with the data object
-    groupedMinAges.sort(function(x, y){return d3.ascending(+x.key, +y.key);});
-    var maxMovieCountPerMinAge = d3.max(groupedMinAges, function(d) { return +d.value;} );
+    groupedData.sort(function(x, y){return d3.ascending(+x.key, +y.key);});
+    var maxMovieCountPerProperty = d3.max(groupedData, function(d) { return +d.value;} );
     // plot this to the slider
-    var minAgeSliderBackground = d3.select('#minimumAgeSlider').append('svg').attr('width','100%').attr('height','100%');
-    var width = d3.select('#minimumAgeSlider').node().getBoundingClientRect().width;
-    var height = d3.select('#minimumAgeSlider').node().getBoundingClientRect().height;
-    var x = d3.scaleLinear().domain([0,19]).range([0,width]); // scale function
-    minAgeSliderBackground.selectAll('rect').data(groupedMinAges).enter().append('rect')
+    var sliderBackground = d3.select('#'+container).append('svg').attr('width','100%').attr('height','100%');
+    var width = d3.select('#'+container).node().getBoundingClientRect().width;
+    var height = d3.select('#'+container).node().getBoundingClientRect().height;
+    var x = d3.scaleLinear().domain([filterLimits[dataFieldName].min,filterLimits[dataFieldName].max]).range([0,width]); // scale function
+    sliderBackground.selectAll('rect').data(groupedData).enter().append('rect')
         // .attr('width', function(d){return x(19-d.key);})
         .attr('width', function(){return x(1);})
         .attr('height', function(){return height;})
         .attr('x', function(d) {return x(+d.key)})
         .attr('y', function() {return 0;})
         .attr('age', function(d){return d.key;})
-        .attr('fill', function(d){return whiteToBlack((+d.value)/maxMovieCountPerMinAge);});//d3.interpolateGreys(+d.value)});
+        .attr('fill', function(d){return whiteToBlack((+d.value)/maxMovieCountPerProperty);});//d3.interpolateGreys(+d.value)});
 }
 
 function numberFormatter(digits){
@@ -271,6 +302,15 @@ function preProcess(item){
     var numReviews = +item['num_user_for_reviews'];
     var numVotes = +item['num_voted_users'];
     item.famousness = Math.pow(numCritics*100+numReviews+numVotes, 1/3)/7;
+
+    // calculate social media popularity
+    item.socialMediaPopularity =
+    5*item['movie_facebook_likes']
+    +item['director_facebook_likes']
+    +item['cast_total_facebook_likes'];
+
+    // calculate gross per budget
+    item.grossPerBudget = item['gross']/item['budget'];
 
     // get main genre / genre category
     if(item['genres'].includes('Sci')){item.genre='Fantasy/Sci-Fi';item.genreColor=1;}
