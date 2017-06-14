@@ -29,7 +29,7 @@ function initialization() {
     // scatterPlot.style('background','yellow');
 
     // specify transition settings
-    transition = d3.transition().duration(700).delay(100);
+    transition = d3.transition().duration(850).delay(100);
 
     initialFilterLimits = {
         minAge:{
@@ -85,7 +85,18 @@ function update(){
                 return true;
             }),
             keyFunction);
-    var newlyAddedRects = rectsExistingYet.enter().append('rect')
+
+    // remove filtered items
+    rectsExistingYet.exit()
+        .transition(transition)
+        .attr('width', function(d){
+            return 0;
+        })
+        .attr('height', function(d){
+            return 0;
+        })
+        .remove();
+    var newlyAddedRects = rectsExistingYet.enter().append('rect');
     newlyAddedRects
         .attr('x', function(d) {
             return scatterPlotX(d['duration']);
@@ -148,17 +159,15 @@ function update(){
         .attr('height', function(d){
             return d.famousness;
         });
-    rectsExistingYet.exit().remove()
-        .transition(transition)
-        .attr('width', function(d){
-            return 0;
-        })
-        .attr('height', function(d){
-            return 0;
-        });
+    // for(var r in newlyAddedRects){
+    //     if(r['movie_title']==='King Kong'){
+    //         console.log('King Kong added!');
+    //     }
+    // }
+
     // var newLine = '&#013;&#010;';
-    var newLine = '\n';
-    rectsExistingYet.append("svg:title")
+    var newLine = '\r\n';
+    newlyAddedRects.append("svg:title")
         .text(function(d) { return d['movie_title']+' ('+d['title_year']+')'+newLine+d['duration']+'min'; });
 
 }
@@ -204,8 +213,9 @@ function finishedLoadingDataset(){
 
 // tells d3 if two objects are the same. Comparable to Java equals function but only returns a key
 function keyFunction(d){
-    return d['movie_title'];
+    // return d['movie_title'];
     // return d['imdb_score']+d['num_voted_users']+'.'+d['duration'];
+    return d.id;
 }
 
 function createSliders() {
@@ -236,14 +246,14 @@ function createSlider(container, dataFieldName){
     slider.noUiSlider.on('update',function (values, handle) {
         i++;
         var thisValue = i;
-        console.log('Update requested:',filterLimits[dataFieldName].min,filterLimits[dataFieldName].max,handle,i);
+        // console.log('Update requested:',filterLimits[dataFieldName].min,filterLimits[dataFieldName].max,handle,i);
         filterLimits[dataFieldName].min = values[0];
         filterLimits[dataFieldName].max = values[1];
         setTimeout(function(){
             // only update if: last event (slider is not moved anymore) || every 300ms
             if(i==thisValue || (new Date()).getTime()-timeOfLastUpdate>300){
                 timeOfLastUpdate = (new Date()).getTime();
-                console.log('Updated:',filterLimits[dataFieldName].min,filterLimits[dataFieldName].max,handle);
+                // console.log('Updated:',filterLimits[dataFieldName].min,filterLimits[dataFieldName].max,handle);
                 update();
             }
         },100);
@@ -273,7 +283,7 @@ function createSlider(container, dataFieldName){
     var shouldBeBin = 0;
     for(var b = 0; b<nrGroups; b++){
         while(+groupedData[b].key !== shouldBeBin){
-            console.log('Add empty bin ',shouldBeBin, ' because existing key is ', groupedData[b]);
+            // console.log('Add empty bin ',shouldBeBin, ' because existing key is ', groupedData[b]);
             groupedData.push({key:shouldBeBin,value:0}); // add missing empty group
             shouldBeBin++;
         }
@@ -306,6 +316,7 @@ function numberFormatter(digits){
 }
 
 // Process data items from the csv
+var id = 0;
 function preProcess(item){
     // extract age from codes
     if(item['content_rating'] === 'PG-13'){item.minAge=13;}
@@ -358,6 +369,7 @@ function preProcess(item){
     }
     item.grossPerBudget = Math.min(item.grossPerBudget, filterLimits.grossPerBudget.max);
 
+    item.id = id; id++;
 
     // get main genre / genre category
     if(item['genres'].includes('Sci')){item.genre='Fantasy/Sci-Fi';item.genreColor=1;}
