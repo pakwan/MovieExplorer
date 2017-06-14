@@ -15,6 +15,7 @@ var scatterPlotColors; // scaling function to map genre to color
 var transition;
 var filterLimits;
 var currentlySelectedMovie;
+var sliders=[];
 
 window.onload = function () { // do when page is loaded
     initialization();
@@ -322,6 +323,14 @@ function keyFunction(d){
 function zoomed() { // https://bl.ocks.org/mbostock/6123708
     scatterPlot.attr('transform', d3.event.transform);
 }
+function reload(){
+    location.reload();
+}
+function loadClassicsSettings(){ // set the filters in order to display only classics
+    // sliders['grossPerBudget'].noUiSlider.set([3,initialFilterLimits.grossPerBudget.max]);
+    sliders['famousness'].noUiSlider.set([11,initialFilterLimits.famousness.max]);
+    sliders['imdb_score'].noUiSlider.set([8,initialFilterLimits.imdb_score.max]);
+}
 
 function createSliders() {
     createSlider('minimumAgeSlider','minAge');
@@ -333,6 +342,7 @@ function createSliders() {
 }
 function createSlider(container, dataFieldName){
     var slider = document.getElementById(container);
+    sliders[dataFieldName] = slider;
     noUiSlider.create(slider, {
         start: [ filterLimits[dataFieldName].min, filterLimits[dataFieldName].max ],
         range: {
