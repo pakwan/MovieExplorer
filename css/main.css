@@ -34,16 +34,28 @@ main{
     height:100%;
 }
 .yearFilter {
-    height:80px;
+    height:87px;
+    overflow:hidden;
+    padding-top: -9px;
+    padding-left: 23px;
+    padding-right: 23px;
 }
+.yearFilter .filterContainer {
+    margin-top: 0;
+}
+
 .filter-info{
     color: #7b7b7b;
     font-size:0.7em;
     margin-top:8px;
 }
-
+#visibleMoviesCounter{
+    position: absolute;
+    top: 25px;
+    right: 8px;
+}
 .scatterPlot {
-    height: calc(100% - 80px);
+    height: calc(100% - 87px);
     vertical-align: middle;
 
 }

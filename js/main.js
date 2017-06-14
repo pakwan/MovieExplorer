@@ -65,6 +65,10 @@ function initialization() {
         socialMediaPopularity:{
             min:0,
             max:80
+        },
+        title_year:{
+            min:1920,
+            max:2017
         }
     };
     filterLimits = JSON.parse(JSON.stringify(initialFilterLimits));
@@ -213,6 +217,7 @@ function update(){
     newlyAddedRects.append('svg:title')
         .text(function(d) { return d['movie_title']+' ('+d['title_year']+')'+newLine+d['duration']+'min'; });
 
+    d3.select('#visibleMoviesCounter').text('Movies shown: '+(rectsExistingYet._groups[0].length));
     updateSidebar();
 
 }
@@ -339,6 +344,7 @@ function createSliders() {
     createSlider('famousSlider','famousness');
     createSlider('grossBudgetSlider','grossPerBudget');
     createSlider('socialMediaSlider','socialMediaPopularity');
+    createSlider('yearSlider','title_year');
 }
 function createSlider(container, dataFieldName){
     var slider = document.getElementById(container);
@@ -366,7 +372,7 @@ function createSlider(container, dataFieldName){
         filterLimits[dataFieldName].max = values[1];
         setTimeout(function(){
             // only update if: last event (slider is not moved anymore) || every 300ms
-            if(i==thisValue || (new Date()).getTime()-timeOfLastUpdate>300){
+            if(i==thisValue || (new Date()).getTime()-timeOfLastUpdate>500){
                 timeOfLastUpdate = (new Date()).getTime();
                 // console.log('Updated:',filterLimits[dataFieldName].min,filterLimits[dataFieldName].max,handle);
                 update();
@@ -483,6 +489,11 @@ function preProcess(item){
         item.grossPerBudget = item['gross']/item['budget'];
     }
     item.grossPerBudget = Math.min(item.grossPerBudget, filterLimits.grossPerBudget.max);
+
+    // set year to 0 if missing
+    if(item['title_year']===''){
+        item.title_year = 0;
+    }
 
     item.id = id; id++;
 
