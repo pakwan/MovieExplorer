@@ -26,8 +26,16 @@ function initialization() {
 
     // insert svg
     scatterPlot = d3.select('#scatterPlot').append('svg').attr('width','100%').attr('height','100%');
-    // scatterPlot.style('background','rgba(255, 255, 255, 0.09)');
-    // scatterPlot.style('background','yellow');
+    scatterPlot = scatterPlot.append('g').style('pointer-events', 'all'); // group containing everything
+    var zoom = d3.zoom()
+        .scaleExtent([1, 10])
+        .on('zoom', zoomed);
+    scatterPlot.call(zoom);
+    scatterPlot.append('rect')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .style('fill', 'none');
+    scatterPlot = scatterPlot.append('g').attr('id','thisIsTheContainerForEverything');
 
     // specify transition settings
     transition = d3.transition().duration(850).delay(100);
@@ -201,7 +209,7 @@ function update(){
 
     // var newLine = '&#013;&#010;';
     var newLine = '\r\n';
-    newlyAddedRects.append("svg:title")
+    newlyAddedRects.append('svg:title')
         .text(function(d) { return d['movie_title']+' ('+d['title_year']+')'+newLine+d['duration']+'min'; });
 
     updateSidebar();
@@ -284,20 +292,20 @@ function finishedLoadingDataset(){
     scatterPlot.append('g').attr('transform','translate('+0+','+originY+')').call(xAxis);
     scatterPlot.append('g').attr('transform','translate('+originX+','+0+')').call(yAxis);
     // axis labels
-    scatterPlot.append("text") //https://stackoverflow.com/questions/11189284/d3-axis-labeling
-        // .attr("class", "x label")
-        .attr("text-anchor", "end")
-        .attr("x", scatterPlotWidth/2)
-        .attr("y", scatterPlotHeight - scatterPlotMarginY[1]+30)
-        .text("Duration");
-    scatterPlot.append("text")
-        // .attr("class", "y label")
-        .attr("text-anchor", "end")
-        .attr("x", -scatterPlotHeight/2) // x and y are swapped due to rotation
-        .attr("y", scatterPlotMarginX[0]-20)
-        // .attr("dy", ".75em")
-        .attr("transform", "rotate(-90)")
-        .text("Score");
+    scatterPlot.append('text') //https://stackoverflow.com/questions/11189284/d3-axis-labeling
+        // .attr('class', 'x label')
+        .attr('text-anchor', 'end')
+        .attr('x', scatterPlotWidth/2)
+        .attr('y', scatterPlotHeight - scatterPlotMarginY[1]+30)
+        .text('Duration');
+    scatterPlot.append('text')
+        // .attr('class', 'y label')
+        .attr('text-anchor', 'end')
+        .attr('x', -scatterPlotHeight/2) // x and y are swapped due to rotation
+        .attr('y', scatterPlotMarginX[0]-20)
+        // .attr('dy', '.75em')
+        .attr('transform', 'rotate(-90)')
+        .text('Score');
 
     update();
 
@@ -310,6 +318,9 @@ function keyFunction(d){
     // return d['movie_title'];
     // return d['imdb_score']+d['num_voted_users']+'.'+d['duration'];
     return d.id;
+}
+function zoomed() { // https://bl.ocks.org/mbostock/6123708
+    scatterPlot.attr('transform', d3.event.transform);
 }
 
 function createSliders() {
@@ -354,7 +365,7 @@ function createSlider(container, dataFieldName){
     });
 
     // create color-coding of slider bar
-    var whiteToBlack = d3.scaleLinear().domain([0,1]).range(["white", "black"]);
+    var whiteToBlack = d3.scaleLinear().domain([0,1]).range(['white', 'black']);
     var groupedData = d3.nest()
         .key(function(d){return +d[dataFieldName]}) // group by property, ex. by minAge
         .rollup(function(values){return d3.sum(values,function(){return 1;})}) // calculate number of movies per group (property)
