@@ -85,8 +85,7 @@ function update(){
                 return true;
             }),
             keyFunction);
-    rectsExistingYet.exit().remove();
-    var newlyAddedRects = rectsExistingYet.enter().append('rect');
+    var newlyAddedRects = rectsExistingYet.enter().append('rect')
     newlyAddedRects
         .attr('x', function(d) {
             return scatterPlotX(d['duration']);
@@ -148,7 +147,19 @@ function update(){
         })
         .attr('height', function(d){
             return d.famousness;
+        });
+    rectsExistingYet.exit().remove()
+        .transition(transition)
+        .attr('width', function(d){
+            return 0;
         })
+        .attr('height', function(d){
+            return 0;
+        });
+    // var newLine = '&#013;&#010;';
+    var newLine = '\n';
+    rectsExistingYet.append("svg:title")
+        .text(function(d) { return d['movie_title']+' ('+d['title_year']+')'+newLine+d['duration']+'min'; });
 
 }
 
@@ -194,6 +205,7 @@ function finishedLoadingDataset(){
 // tells d3 if two objects are the same. Comparable to Java equals function but only returns a key
 function keyFunction(d){
     return d['movie_title'];
+    // return d['imdb_score']+d['num_voted_users']+'.'+d['duration'];
 }
 
 function createSliders() {
