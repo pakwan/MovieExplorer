@@ -14,6 +14,7 @@ var numberOfGenres;
 var scatterPlotColors; // scaling function to map genre to color
 var transition;
 var filterLimits;
+var currentlySelectedMovie;
 
 window.onload = function () { // do when page is loaded
     initialization();
@@ -96,6 +97,27 @@ function update(){
             return 0;
         })
         .remove();
+
+    // update all still visible items
+    rectsExistingYet
+        .attr('stroke-width', function(d) {
+            if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+                return Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+            } else { // currently selected
+                // console.log('Fat stroke width: ',d);
+                return 3*Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+            }
+        })
+        .attr('opacity', function(d) {
+            if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+                return 0.68;
+            } else { // currently selected
+                return 1;
+            }
+        });
+    // d3.select('#id'+d.id).append()
+
+    // add new items
     var newlyAddedRects = rectsExistingYet.enter().append('rect');
     newlyAddedRects
         .attr('x', function(d) {
@@ -119,9 +141,16 @@ function update(){
             // return d['famousness'];
             return 0; // transition is handling this (see below)
         })
-        .attr('stroke-width', function(d){
-            return Math.min(Math.max(1.0,d['famousness']/10),2.0);
-            // return 1;
+        .attr('id', function(d) {
+            return 'id'+d.id; // ids must begin with a letter
+        })
+        .attr('stroke-width', function(d) {
+            if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+                return Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+            } else { // currently selected
+                console.log('Fat stroke width: ',d);
+                return 3*Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+            }
         })
         .attr('fill', function(){
             return 'transparent';
@@ -129,7 +158,7 @@ function update(){
         .attr('stroke', function(d){ // color
             return scatterPlotColors(d['genreColor']);
         })
-        .on("mouseover", function(){
+        .on('mouseover', function(){
             var minSizeOnHover = 15; // 15 pixel minimum size of items when hovered
             d3.select(this).transition().duration(300)
                 .attr('width', function(d){return Math.max(minSizeOnHover,2*d.famousness);})
@@ -141,7 +170,7 @@ function update(){
                     }else{return 0;}
                 });
         })
-        .on("mouseout", function(){
+        .on('mouseout', function(){
             d3.select(this).transition().duration(300)
                 .attr('width', function(d){return d.famousness;})
                 .attr('height', function(d){return d.famousness;})
@@ -151,6 +180,11 @@ function update(){
                     if(d['language'].toLowerCase()==='english'){return d['famousness']/2;
                     }else{return 0;}
                 });
+        })
+        .on('click', function(d){
+            console.log('Clicked on ',d);
+            currentlySelectedMovie = d;
+            update();
         })
         .transition(transition)
         .attr('width', function(d){
@@ -170,6 +204,22 @@ function update(){
     newlyAddedRects.append("svg:title")
         .text(function(d) { return d['movie_title']+' ('+d['title_year']+')'+newLine+d['duration']+'min'; });
 
+    updateSidebar();
+
+}
+
+function updateSidebar(){
+    if(currentlySelectedMovie!==undefined){
+        d3.select('#movieInfos').attr('class','visible');
+        d3.select('#movieTitle').text(currentlySelectedMovie['movie_title']);
+        d3.select('#movieTitleLink').attr('href',currentlySelectedMovie['movie_imdb_link']);
+        d3.select('#tableYear').text(currentlySelectedMovie['title_year']);
+        d3.select('#tableCountry').text(currentlySelectedMovie['country']);
+        d3.select('#tableDuration').text(currentlySelectedMovie['duration']);
+        d3.select('#tableGenres').text(currentlySelectedMovie['genres']);
+
+
+    }
 }
 
 function finishedLoadingDataset(){

@@ -55,13 +55,22 @@ main{
 .no-padding {
     padding:0;
 }
+#movieInfos{
+    visibility:hidden;
+}
+.visible{
+    visibility: visible !important;
+}
+a h4 {
+    color: #717171;
+}
+
 #centralScatterplotArea{
     z-index:0;
 }
 .center-using-auto-margins{
- margin-left: auto;
+    margin-left: auto;
     margin-right: auto;
-
 }
 .loadingIcon {
     /*icon height: 50-2*8=34; icon width 34=x-2*15 => x=64 */
