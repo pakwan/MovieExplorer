@@ -217,9 +217,53 @@ function updateSidebar(){
         d3.select('#tableCountry').text(currentlySelectedMovie['country']);
         d3.select('#tableDuration').text(currentlySelectedMovie['duration']);
         d3.select('#tableGenres').text(currentlySelectedMovie['genres']);
+        d3.select('#tableDirector').text(currentlySelectedMovie['director_name']);
+        d3.select('#tableActors1').text(currentlySelectedMovie['actor_1_name']);
+        d3.select('#tableActors2').text(currentlySelectedMovie['actor_2_name']);
+        d3.select('#tableActors3').text(currentlySelectedMovie['actor_3_name']);
 
+        // find similar movies
+        var similarMovies = [];
+        d3.select('#similarMovies').selectAll('*').remove(); // remove all previously similar movies
+        setTimeout(function(){ // asynchronously (performance reasons)
+            for(var n = 0; n<data.length; n++) {
+                var d = data[n];
+                if(d.id !== currentlySelectedMovie.id){
+                    if (d['director_name']===currentlySelectedMovie['director_name']){// same director
+                        similarMovies.push(d);
+                        d3.select('#similarMovies').append('button')
+                            .html(d['movie_title']+'('+d['title_year']+')<br>'+d['duration']+'min'+'<br>('+d['director_name']+')')
+                            .attr('class','similarMovieButton btn')
+                            .attr('onClick','selectSimilarMovieByButton('+d.id+')');
+                    } else if(d['country']===currentlySelectedMovie['country'] && d['genre']===currentlySelectedMovie['genre'] && d['title_year']===currentlySelectedMovie['title_year']){ // same country, same genre, same year --> similar
+                        similarMovies.push(d);
+                        d3.select('#similarMovies').append('button')
+                            .html(d['movie_title']+'('+d['title_year']+')<br>'+d['duration']+'min')
+                            .attr('class','similarMovieButton btn')
+                            .attr('onClick','selectSimilarMovieByButton('+d.id+')');
+                    } else if(d['actor_1_name']===currentlySelectedMovie['actor_1_name']){  //same main actor
+                        similarMovies.push(d);
+                        d3.select('#similarMovies').append('button')
+                            .html(d['movie_title']+'('+d['title_year']+')<br>'+d['duration']+'min'+'<br>('+d['actor_1_name']+')')
+                            .attr('class','similarMovieButton btn')
+                            .attr('onClick','selectSimilarMovieByButton('+d.id+')');
+                    }
 
+                }
+            }
+            console.log('Found similar movies: ',similarMovies);
+        },0);
     }
+}
+
+function selectSimilarMovieByButton(id){
+    for(var n = 0; n<data.length; n++) {
+        var d = data[n];
+        if(d.id === +id) {
+            currentlySelectedMovie = d;
+        }
+    }
+    update();
 }
 
 function finishedLoadingDataset(){

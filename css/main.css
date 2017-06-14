@@ -64,6 +64,41 @@ main{
 a h4 {
     color: #717171;
 }
+h5 {
+    font-weight:bold;
+}
+.rightFilters {
+    overflow-y: scroll;
+}
+#movieInfos {
+    height:100%;
+}
+.rightSidebarInfos {
+    height:100%;
+}
+#similarMovies{
+    overflow-y: scroll;
+    height: calc(100% - 313px);
+}
+.similarMovieButton {
+    width: 44%;
+    margin: 3px;
+    padding:4px;
+    font-size: 0.8em;
+    height: 66px;
+    overflow-x: hidden;
+}
+#movieInfosTable{
+    width:90%;
+    overflow-y: hidden;
+}
+#movieInfosTable th {
+    width: 72px;
+}
+#shortcuts {
+    bottom: 13px;
+    position: absolute;
+}
 
 #centralScatterplotArea{
     z-index:0;
