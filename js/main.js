@@ -35,6 +35,7 @@ var initialFilterLimits;
 var currentlySelectedMovie;
 var previouslySelectedMovie;
 var sliders=[];
+var genreFilters=[];
 
 window.onload = function () { // do when page is loaded
     initialization();
@@ -129,6 +130,7 @@ function update() {
                     }
                 }
             }
+            if(!genreFilters[d.genreNr].value){return false;}
             return true;
         });
     updateScatterplot(updatedData);
@@ -427,40 +429,92 @@ function createGenreScatterplot(){
     // create container for all circles representing movies (else there are problems because d3 doesn't know which circles represent movies and not the legend)
     genreScatterPlot.append('g')
         .attr('id','genreScatterPlotDataContainer');
+    var genreScatterPlotLabelContainer = genreScatterPlot.append('g')
+        .attr('id','genreScatterPlotLabelContainer');
 
     // genre labels
-    for(var g=0; g<numberOfGenres; g++) {
-        (function(g){ // this is necessary in order to have the correct g in the block below also in methods that are executed later (onclick)
-            var group = genreScatterPlot.append('g');
-            // const staticG = g;
-            group.append('circle')
-                .attr('cx',genreScatterPlotLabelMarginX)
-                .attr('cy',genreScatterPlotY(g))
-                .attr('r',genreCircleRadius)
-                .attr('fill',scatterPlotColors(nrToGenreColorMapping[g]));
-            group.append('text')
-                // .attr('alignment-baseline','central')
-                .attr('text-anchor', 'start')
-                .attr('x', genreScatterPlotLabelMarginX+10)
-                .attr('y', genreScatterPlotY(g)+4)
-                .attr('font-size','0.9em')
-                .text(nrToGenreMapping[g]);
-            group.append('rect')
-                .attr('x', genreScatterPlotLabelMarginX-4)
-                .attr('y', genreScatterPlotY(g)-0.5*(genreScatterPlotY(g+1)-genreScatterPlotY(g)))
-                .attr('width', 0.8*(genreScatterPlotMarginX[0]-genreScatterPlotLabelMarginX))
-                .attr('height', 0.9*(genreScatterPlotY(g+1)-genreScatterPlotY(g)))
-                .attr('fill','transparent')
-                .attr('genreNr',g)
-                .on('click',function () {
-                    console.log('Disabling1 ',g);
-                    // TODO filter genres
-                });
-        })(g);
+//     for(var g=0; g<numberOfGenres; g++) {
+//         (function(g){ // this is necessary in order to have the correct g in the block below also in methods that are executed later (onclick)
+//             var group = genreScatterPlotLabelContainer.append('g');
+//             // const staticG = g;
+//             group.append('circle')
+//                 .attr('cx',genreScatterPlotLabelMarginX)
+//                 .attr('cy',genreScatterPlotY(g))
+//                 .attr('r',genreCircleRadius)
+//                 .attr('fill',scatterPlotColors(nrToGenreColorMapping[g]));
+//             group.append('text')
+//                 // .attr('alignment-baseline','central')
+//                 .attr('text-anchor', 'start')
+//                 .attr('x', genreScatterPlotLabelMarginX+10)
+//                 .attr('y', genreScatterPlotY(g)+4)
+//                 .attr('font-size','0.9em')
+//                 .text(nrToGenreMapping[g]);
+//             group.append('rect')
+//                 .attr('x', genreScatterPlotLabelMarginX-4)
+//                 .attr('y', genreScatterPlotY(g)-0.5*(genreScatterPlotY(g+1)-genreScatterPlotY(g)))
+//                 .attr('width', 0.8*(genreScatterPlotMarginX[0]-genreScatterPlotLabelMarginX))
+//                 .attr('height', 0.9*(genreScatterPlotY(g+1)-genreScatterPlotY(g)))
+//                 .attr('fill','transparent')
+//                 .attr('genreNr',g)
+//                 .on('click',function () {
+//                     console.log('Disabling1 ',g);
+//                     genreFilters[g] = !genreFilters[g];
+//                     update();
+//                 });
+//         })(g);
+// }
 
-    }
+    var genreFilterSubContainer = genreScatterPlotLabelContainer.selectAll('g').data(genreFilters,function(d){return d.id;}).enter().append('g');
+    genreFilterSubContainer.append('circle')
+        .attr('cx',genreScatterPlotLabelMarginX)
+        .attr('cy',function(d){
+            return genreScatterPlotY(d.id);
+        })
+        .attr('r',genreCircleRadius)
+        .attr('fill',function(d){
+            return scatterPlotColors(nrToGenreColorMapping[d.id]);
+        });
+    genreFilterSubContainer.append('text')
+        // .attr('alignment-baseline','central')
+        .attr('text-anchor', 'start')
+        .attr('x', genreScatterPlotLabelMarginX+10)
+        .attr('y', function(d){
+            return genreScatterPlotY(d.id)+4;
+        })
+        .attr('font-size','0.9em')
+        .attr('stroke','none')
+        .attr('fill','black')
+        .text(function(d){
+            return nrToGenreMapping[d.id];
+        });
+    genreFilterSubContainer.append('rect')
+        .attr('x', genreScatterPlotLabelMarginX-4)
+        .attr('y', function(d){
+            return genreScatterPlotY(d.id)-0.5*(genreScatterPlotY(d.id+1)-genreScatterPlotY(d.id));
+        })
+        .attr('width', 0.8*(genreScatterPlotMarginX[0]-genreScatterPlotLabelMarginX))
+        .attr('height', function(d){
+            return 0.9*(genreScatterPlotY(d.id+1)-genreScatterPlotY(d.id));
+        })
+        .attr('fill','transparent')
+        .on('click',function (d) {
+            console.log('Disabling1 ',d.id);
+            genreFilters[d.id].value = !genreFilters[d.id].value;
+            update();
+        });
+
 }
 function updateGenreScatterplot(updatedData){
+    // grey out labels of genres that are filtered out
+    d3.select('#genreScatterPlotLabelContainer').selectAll('g').data(genreFilters).select('text')
+        .attr('fill', function (d) {
+            if(d.value){
+                return '#000000';
+            }else{
+                return '#777777'; // grayed out
+            }
+        });
+
     // add items to scatter plot
     var existingYet = genreScatterPlot.select('#genreScatterPlotDataContainer').selectAll('circle')
         .data(updatedData, keyFunction);
@@ -563,6 +617,9 @@ function updateGenreScatterplot(updatedData){
 }
 
 function finishedLoadingDataset(){
+    for(var g = 0; g<numberOfGenres; g++){
+        genreFilters.push({id:g,value:true}); // array of filters per genre
+    }
 
     createScatterplot();
     createGenreScatterplot();
