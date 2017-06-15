@@ -430,19 +430,34 @@ function createGenreScatterplot(){
 
     // genre labels
     for(var g=0; g<numberOfGenres; g++) {
-        var group = genreScatterPlot.append('g');
-        group.append('circle')
-            .attr('cx',genreScatterPlotLabelMarginX)
-            .attr('cy',genreScatterPlotY(g))
-            .attr('r',genreCircleRadius)
-            .attr('fill',scatterPlotColors(nrToGenreColorMapping[g]));
-        group.append('text')
-            // .attr('alignment-baseline','central')
-            .attr('text-anchor', 'start')
-            .attr('x', genreScatterPlotLabelMarginX+10)
-            .attr('y', genreScatterPlotY(g)+4)
-            .attr('font-size','0.9em')
-            .text(nrToGenreMapping[g]);
+        (function(g){ // this is necessary in order to have the correct g in the block below also in methods that are executed later (onclick)
+            var group = genreScatterPlot.append('g');
+            // const staticG = g;
+            group.append('circle')
+                .attr('cx',genreScatterPlotLabelMarginX)
+                .attr('cy',genreScatterPlotY(g))
+                .attr('r',genreCircleRadius)
+                .attr('fill',scatterPlotColors(nrToGenreColorMapping[g]));
+            group.append('text')
+                // .attr('alignment-baseline','central')
+                .attr('text-anchor', 'start')
+                .attr('x', genreScatterPlotLabelMarginX+10)
+                .attr('y', genreScatterPlotY(g)+4)
+                .attr('font-size','0.9em')
+                .text(nrToGenreMapping[g]);
+            group.append('rect')
+                .attr('x', genreScatterPlotLabelMarginX-4)
+                .attr('y', genreScatterPlotY(g)-0.5*(genreScatterPlotY(g+1)-genreScatterPlotY(g)))
+                .attr('width', 0.8*(genreScatterPlotMarginX[0]-genreScatterPlotLabelMarginX))
+                .attr('height', 0.9*(genreScatterPlotY(g+1)-genreScatterPlotY(g)))
+                .attr('fill','transparent')
+                .attr('genreNr',g)
+                .on('click',function () {
+                    console.log('Disabling1 ',g);
+                    // TODO filter genres
+                });
+        })(g);
+
     }
 }
 function updateGenreScatterplot(updatedData){
