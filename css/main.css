@@ -54,8 +54,12 @@ main{
 .scatterPlot {
     height: calc(100% - 87px);
     vertical-align: middle;
-
 }
+#genreScatterplot {
+    height: 300px;
+    width: 100%;
+}
+
 .axis path,
 .axis line {
     fill: none;

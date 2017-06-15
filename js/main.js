@@ -24,6 +24,7 @@ var genreScatterPlotX; // scaling function in x direction
 var genreScatterPlotY; // scaling function in y direction
 
 var numberOfGenres;
+var numberOfGenreGroups;
 var transition;
 var filterLimits;
 var initialFilterLimits;
@@ -405,9 +406,9 @@ function createGenreScatterplot(){
     // axis labels
     genreScatterPlot.append('text') //https://stackoverflow.com/questions/11189284/d3-axis-labeling
         // .attr('class', 'x label')
-        .attr('text-anchor', 'end')
+        .attr('text-anchor', 'middle')
         .attr('x', genreScatterPlotWidth/2)
-        .attr('y', genreScatterPlotHeight - genreScatterPlotMarginY[1]+30)
+        .attr('y', genreScatterPlotHeight - genreScatterPlotMarginY[1]+60)
         .text('Duration');
     // genreScatterPlot.append('text')
     //     // .attr('class', 'y label')
@@ -474,7 +475,7 @@ function updateGenreScatterplot(updatedData){
             return genreScatterPlotX(d['duration']);
         })
         .attr('cy', function(d) {
-            return genreScatterPlotY(d['genreColor']);
+            return genreScatterPlotY(d['genreNr']);
         })
         .attr('r', function(){
             return 0; // transition is handling this (see below)
@@ -735,26 +736,28 @@ function preProcess(item){
     item.id = id; id++;
 
     // get main genre / genre category
-    if(item['genres'].includes('Sci')){item.genre='Fantasy/Sci-Fi';item.genreColor=1;}
-    else if(item['genres'].includes('Animation')){item.genre='Family';item.genreColor=0;}
-    else if(item['genres'].includes('Fantasy')){item.genre='Fantasy/Sci-Fi';item.genreColor=1;}
-    else if(item['genres'].includes('Family')){item.genre='Family';item.genreColor=0;}
-    else if(item['genres'].includes('Thriller')){item.genre='Action';item.genreColor=1;}
-    else if(item['genres'].includes('Adventure')){item.genre='Action';item.genreColor=1;}
-    else if(item['genres'].includes('Romance')){item.genre='Romance/Musical';item.genreColor=0;}
-    else if(item['genres'].includes('Musical')){item.genre='Romance/Musical';item.genreColor=0;}
-    else if(item['genres'].includes('Music')){item.genre='Romance/Musical';item.genreColor=0;}
-    else if(item['genres'].includes('Western')){item.genre='Action';item.genreColor=1;}
-    else if(item['genres'].includes('Biography')){item.genre='Drama';item.genreColor=2;}
-    else if(item['genres'].includes('History')){item.genre='History';item.genreColor=2;}
-    else if(item['genres'].includes('Comedy')){item.genre='Comedy';item.genreColor=4;}
-    else if(item['genres'].includes('Documentary')){item.genre='Documentary';item.genreColor=2;}
-    else if(item['genres'].includes('Drama')){item.genre='Drama';item.genreColor=2;}
-    else if(item['genres'].includes('Horror')){item.genre='Horror';item.genreColor=3;}
-    else if(item['genres'].includes('Crime')){item.genre='Action';item.genreColor=1;}
-    else if(item['genres'].includes('Action')){item.genre='Action';item.genreColor=1;}
+    if(item['genres'].includes('Sci')){item.genre='Sci-Fi';item.genreColor=5;item.genreNr=13;}
+    else if(item['genres'].includes('Animation')){item.genre='Family';item.genreColor=0;item.genreNr=6;}
+    else if(item['genres'].includes('Fantasy')){item.genre='Fantasy';item.genreColor=5;item.genreNr=7;}
+    else if(item['genres'].includes('Family')){item.genre='Family';item.genreColor=0;item.genreNr=6;}
+    else if(item['genres'].includes('Documentary')){item.genre='Documentary';item.genreColor=2;item.genreNr=4;}
+    else if(item['genres'].includes('Comedy')){item.genre='Comedy';item.genreColor=4;item.genreNr=2;}
+    else if(item['genres'].includes('Crime')){item.genre='Crime';item.genreColor=1;item.genreNr=3;}
+    else if(item['genres'].includes('Thriller')){item.genre='Action';item.genreColor=1;item.genreNr=0;}
+    else if(item['genres'].includes('Adventure')){item.genre='Action';item.genreColor=1;item.genreNr=0;}
+    else if(item['genres'].includes('Romance')){item.genre='Romance';item.genreColor=0;item.genreNr=12;}
+    else if(item['genres'].includes('Musical')){item.genre='Music';item.genreColor=0;item.genreNr=10;}
+    else if(item['genres'].includes('Music')){item.genre='Music';item.genreColor=0;item.genreNr=10;}
+    else if(item['genres'].includes('Western')){item.genre='Action';item.genreColor=1;item.genreNr=0;}
+    else if(item['genres'].includes('Mystery')){item.genre='Mystery';item.genreColor=5;item.genreNr=11;}
+    else if(item['genres'].includes('Biography')){item.genre='Biography';item.genreColor=2;item.genreNr=1;}
+    else if(item['genres'].includes('Drama')){item.genre='Drama';item.genreColor=2;item.genreNr=5;}
+    else if(item['genres'].includes('History')){item.genre='History';item.genreColor=2;item.genreNr=8;}
+    else if(item['genres'].includes('Horror')){item.genre='Horror';item.genreColor=3;item.genreNr=9;}
+    else if(item['genres'].includes('Action')){item.genre='Action';item.genreColor=1;item.genreNr=0;}
     else {console.warn('Don\'t forget to consider the genre: ',item['genres']);}
-    numberOfGenres = 5;
+    numberOfGenres = 14;
+    numberOfGenreGroups = 6;
 
     // delete unnecessary fields
     delete item['actor_1_facebook_likes'];
