@@ -80,19 +80,23 @@ a h4 {
 h5 {
     font-weight:bold;
 }
+#leftFiltersContainer{
+    height: calc(100% - 70px);
+    /*overflow-y:auto;*/
+}
 .rightFilters {
     overflow-y: scroll;
 }
 #movieInfos {
     visibility:hidden;
-    height: calc(100% - 75px);
+    height: 100%;
 }
 .rightSidebarInfos {
-    height:95%;
+    height:calc(100% - 310px);
 }
 #similarMovies{
     overflow-y: scroll;
-    height: calc(100% - 215px);
+    height: calc(100% - 230px);
 }
 .similarMovieButton {
     width: 44%;
@@ -105,6 +109,7 @@ h5 {
 #movieInfosTable{
     width:90%;
     overflow-y: hidden;
+    font-size:0.9em;
 }
 #movieInfosTable th {
     width: 72px;

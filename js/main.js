@@ -18,13 +18,17 @@ var genreScatterPlotWidth;
 var genreScatterPlotHeight;
 var genreScatterPlotDomainX = scatterPlotDomainX; // range of values to display on the x axis
 var genreScatterPlotDomainY; // range of values to display on the y axis (counted from top left)
-var genreScatterPlotMarginX = [40,40];
-var genreScatterPlotMarginY = [40,40];
+var genreScatterPlotMarginX = [97,9];
+var genreScatterPlotMarginY = [20,50];
+var genreScatterPlotLabelMarginX = 4;
+var genreCircleRadius = 4;
 var genreScatterPlotX; // scaling function in x direction
 var genreScatterPlotY; // scaling function in y direction
 
 var numberOfGenres;
 var numberOfGenreGroups;
+var genreToNrMapping;
+var nrToGenreMapping;
 var transition;
 var filterLimits;
 var initialFilterLimits;
@@ -150,14 +154,14 @@ function updateScatterplot(updatedData){
 
     // update all still visible items
     rectsExistingYet
-        // .attr('stroke-width', function(d) {
-        //     if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
-        //         return Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
-        //     } else { // currently selected
-        //         // console.log('Fat stroke width: ',d);
-        //         return 3*Math.min(Math.max(2.5, 2*d['famousness'] / 10), 4.0);
-        //     }
-        // })
+    // .attr('stroke-width', function(d) {
+    //     if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+    //         return Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+    //     } else { // currently selected
+    //         // console.log('Fat stroke width: ',d);
+    //         return 3*Math.min(Math.max(2.5, 2*d['famousness'] / 10), 4.0);
+    //     }
+    // })
         .attr('fill', function(d){
             if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
                 return 'transparent';
@@ -185,7 +189,7 @@ function updateScatterplot(updatedData){
         })
         .attr('rx', function(d) { // roundness of corners
             if(d['language'].toLowerCase()==='english'){
-                return d['famousness']/2;
+                return Math.max(5,d.famousness)/2;
             }else{
                 return 0;
             }
@@ -218,23 +222,23 @@ function updateScatterplot(updatedData){
         .on('mouseover', function(){
             var minSizeOnHover = 15; // 15 pixel minimum size of items when hovered
             d3.select(this).transition().duration(300)
-                .attr('width', function(d){return Math.max(minSizeOnHover,2*d.famousness);})
-                .attr('height', function(d){return Math.max(minSizeOnHover,2*d.famousness);})
+                .attr('width', function(d){return Math.max(minSizeOnHover,2*Math.max(5,d.famousness));})
+                .attr('height', function(d){return Math.max(minSizeOnHover,2*Math.max(5,d.famousness));})
                 .attr('x', function(d) {return scatterPlotX(d['duration'])-Math.max(minSizeOnHover/2,d.famousness)/2;})
                 .attr('y', function(d) {return scatterPlotY(d['imdb_score'])-Math.max(minSizeOnHover/2,d.famousness)/2;})
                 .attr('rx', function(d) { // roundness of corners
-                    if(d['language'].toLowerCase()==='english'){return Math.max(2*d['famousness'],minSizeOnHover)/2;
+                    if(d['language'].toLowerCase()==='english'){return Math.max(2*Math.max(5,d.famousness),minSizeOnHover)/2;
                     }else{return 0;}
                 });
         })
         .on('mouseout', function(){
             d3.select(this).transition().duration(300)
-                .attr('width', function(d){return d.famousness;})
-                .attr('height', function(d){return d.famousness;})
+                .attr('width', function(d){return Math.max(5,d.famousness);})
+                .attr('height', function(d){return Math.max(5,d.famousness);})
                 .attr('x', function(d) {return scatterPlotX(d['duration']);})
                 .attr('y', function(d) {return scatterPlotY(d['imdb_score']);})
                 .attr('rx', function(d) { // roundness of corners
-                    if(d['language'].toLowerCase()==='english'){return d['famousness']/2;
+                    if(d['language'].toLowerCase()==='english'){return Math.max(5,d.famousness)/2;
                     }else{return 0;}
                 });
         })
@@ -245,10 +249,10 @@ function updateScatterplot(updatedData){
         })
         .transition(transition)
         .attr('width', function(d){
-            return d.famousness;
+            return Math.max(5,d.famousness);
         })
         .attr('height', function(d){
-            return d.famousness;
+            return Math.max(5,d.famousness);
         });
     // for(var r in newlyAddedRects){
     //     if(r['movie_title']==='King Kong'){
@@ -407,8 +411,8 @@ function createGenreScatterplot(){
     genreScatterPlot.append('text') //https://stackoverflow.com/questions/11189284/d3-axis-labeling
         // .attr('class', 'x label')
         .attr('text-anchor', 'middle')
-        .attr('x', genreScatterPlotWidth/2)
-        .attr('y', genreScatterPlotHeight - genreScatterPlotMarginY[1]+60)
+        .attr('x', (genreScatterPlotWidth+genreScatterPlotMarginX[0]-genreScatterPlotMarginX[1])/2)
+        .attr('y', genreScatterPlotHeight - genreScatterPlotMarginY[1]+50)
         .text('Duration');
     // genreScatterPlot.append('text')
     //     // .attr('class', 'y label')
@@ -419,10 +423,31 @@ function createGenreScatterplot(){
     //     .attr('transform', 'rotate(-90)')
     //     .text('Score');
     // updateGenreScatterplot();
+
+    // create container for all circles representing movies (else there are problems because d3 doesn't know which circles represent movies and not the legend)
+    genreScatterPlot.append('g')
+        .attr('id','genreScatterPlotDataContainer');
+
+    // genre labels
+    for(var g=0; g<numberOfGenres; g++) {
+        var group = genreScatterPlot.append('g');
+        group.append('circle')
+            .attr('cx',genreScatterPlotLabelMarginX)
+            .attr('cy',genreScatterPlotY(g))
+            .attr('r',genreCircleRadius)
+            .attr('fill',scatterPlotColors(nrToGenreColorMapping[g]));
+        group.append('text')
+            // .attr('alignment-baseline','central')
+            .attr('text-anchor', 'start')
+            .attr('x', genreScatterPlotLabelMarginX+10)
+            .attr('y', genreScatterPlotY(g)+4)
+            .attr('font-size','0.9em')
+            .text(nrToGenreMapping[g]);
+    }
 }
 function updateGenreScatterplot(updatedData){
-// add items to scatter plot
-    var existingYet = genreScatterPlot.selectAll('circle')
+    // add items to scatter plot
+    var existingYet = genreScatterPlot.select('#genreScatterPlotDataContainer').selectAll('circle')
         .data(updatedData, keyFunction);
 
     // remove filtered items
@@ -432,8 +457,6 @@ function updateGenreScatterplot(updatedData){
             return 0;
         })
         .remove();
-
-    var radius = 4;
 
     // update all still visible items
     existingYet
@@ -446,20 +469,19 @@ function updateGenreScatterplot(updatedData){
         })
         .attr('r', function(d){
             if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
-                return radius;
+                return genreCircleRadius;
             } else { // currently selected
-                return 3*radius;
+                return 3*genreCircleRadius;
             }
         })
-
-        .attr('stroke-width', function(d) {
-            if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
-                return Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
-            } else { // currently selected
-                // console.log('Fat stroke width: ',d);
-                return 3*Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
-            }
-        })
+        // .attr('stroke-width', function(d) {
+        //     if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+        //         return Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+        //     } else { // currently selected
+        //         // console.log('Fat stroke width: ',d);
+        //         return 3*Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+        //     }
+        // })
         .attr('opacity', function(d) {
             if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
                 return 0.68;
@@ -488,7 +510,7 @@ function updateGenreScatterplot(updatedData){
         })
         .on('mouseover', function(){
             d3.select(this).transition().duration(300)
-                .attr('r', function(){return 3*radius;})
+                .attr('r', function(){return 3*genreCircleRadius;})
                 .attr('fill-opcaity', function(){
                     return '1.0';
                 });
@@ -497,7 +519,7 @@ function updateGenreScatterplot(updatedData){
             if (currentlySelectedMovie === undefined || d.id !== currentlySelectedMovie.id) { // only if not selected
                 d3.select(this).transition().duration(300)
                     .attr('r', function () {
-                        return radius;
+                        return genreCircleRadius;
                     })
                     .attr('fill-opacity', function () {
                         return '0.3';
@@ -511,7 +533,7 @@ function updateGenreScatterplot(updatedData){
         })
         .transition(transition)
         .attr('r', function(d){
-            return radius;
+            return genreCircleRadius;
         });
     // for(var r in newlyAddedRects){
     //     if(r['movie_title']==='King Kong'){
@@ -749,15 +771,49 @@ function preProcess(item){
     else if(item['genres'].includes('Musical')){item.genre='Music';item.genreColor=0;item.genreNr=10;}
     else if(item['genres'].includes('Music')){item.genre='Music';item.genreColor=0;item.genreNr=10;}
     else if(item['genres'].includes('Western')){item.genre='Action';item.genreColor=1;item.genreNr=0;}
-    else if(item['genres'].includes('Mystery')){item.genre='Mystery';item.genreColor=5;item.genreNr=11;}
     else if(item['genres'].includes('Biography')){item.genre='Biography';item.genreColor=2;item.genreNr=1;}
-    else if(item['genres'].includes('Drama')){item.genre='Drama';item.genreColor=2;item.genreNr=5;}
     else if(item['genres'].includes('History')){item.genre='History';item.genreColor=2;item.genreNr=8;}
+    else if(item['genres'].includes('Mystery')){item.genre='Mystery';item.genreColor=5;item.genreNr=11;}
+    else if(item['genres'].includes('Drama')){item.genre='Drama';item.genreColor=2;item.genreNr=5;}
     else if(item['genres'].includes('Horror')){item.genre='Horror';item.genreColor=3;item.genreNr=9;}
     else if(item['genres'].includes('Action')){item.genre='Action';item.genreColor=1;item.genreNr=0;}
     else {console.warn('Don\'t forget to consider the genre: ',item['genres']);}
     numberOfGenres = 14;
     numberOfGenreGroups = 6;
+    genreToNrMapping = {
+        'Sci-Fi': 13,
+        'Family': 6,
+        'Fantasy': 7,
+        'Documentary': 4,
+        'Comedy': 2,
+        'Crime': 3,
+        'Action': 0,
+        'Romance': 12,
+        'Music':10,
+        'Mystery': 11,
+        'Biography':1,
+        'Drama': 5,
+        'History': 8,
+        'Horror': 9
+    };
+    nrToGenreMapping = [
+        'Action',
+        'Biography',
+        'Comedy',
+        'Crime',
+        'Documentary',
+        'Drama',
+        'Family',
+        'Fantasy',
+        'History',
+        'Horror',
+        'Music',
+        'Mystery',
+        'Romance',
+        'Sci-Fi'
+    ];
+    nrToGenreColorMapping = [1,2,4,1,2,2,0,5,2,3,0,5,0,5];
+
 
     // delete unnecessary fields
     delete item['actor_1_facebook_likes'];
