@@ -26,9 +26,6 @@ main{
 .filterContainer{
     margin-top: 20px;
 }
-.filterContainer .noUi-target {
-    margin-bottom: 37px;
-}
 
 .full-height {
     height:100%;
@@ -166,10 +163,11 @@ h5 {
     display: none;
 }
 .noUi-horizontal .noUi-base  .noUi-handle .noUi-tooltip {
-    font-size: 0.9em;
+    font-size: 0.7em;
     bottom: initial;
     padding: 3px;
     top: 109%;
+    z-index:100;
 }
 .noUi-horizontal {
     height: 14px;
@@ -187,6 +185,11 @@ h5 {
     top: 0;
     z-index: 0;
     box-shadow: rgba(75, 82, 87, 0.45) 0 0 3px 1px;
+}
+.filterContainer .noUi-target {
+    margin-bottom: 37px;
+    margin-right: 8px;
+    margin-left: 10px;
 }
 
 /*Animations*/

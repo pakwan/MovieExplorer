@@ -4,7 +4,7 @@ var scatterPlot;
 var pathToDataSet = 'data/movie_metadata.csv';
 var scatterPlotWidth;
 var scatterPlotHeight;
-var scatterPlotDomainX = [60,260]; // range of values to display on the x axis
+var scatterPlotDomainX = [50,260]; // range of values to display on the x axis
 var scatterPlotDomainY = [10,0]; // range of values to display on the y axis (counted from top left --> beginning with 10)
 var scatterPlotMarginX = [40,40];
 var scatterPlotMarginY = [40,40];
@@ -14,6 +14,7 @@ var numberOfGenres;
 var scatterPlotColors; // scaling function to map genre to color
 var transition;
 var filterLimits;
+var initialFilterLimits;
 var currentlySelectedMovie;
 var sliders=[];
 
@@ -41,37 +42,72 @@ function initialization() {
     // specify transition settings
     transition = d3.transition().duration(850).delay(100);
 
-    initialFilterLimits = {
+    filterLimits = {
         minAge:{
             min: 0,
-            max: 18
+            max: 18,
+            showAboveAndBelow: true,
+            numberFormatFunction: numberFormatter(0)
         },
         duration:{
             min: scatterPlotDomainX[0],
-            max: scatterPlotDomainX[1]
+            max: scatterPlotDomainX[1],
+            showAboveAndBelow: false,
+            debug: {
+                a: 10,
+                b: 12,
+                c: function (asd) {
+                    return asd;
+                }
+            },
+            numberFormatFunction: {
+                to: function(value){return value.toFixed(0)+'min';},
+                from: function(value){return +value.replace('min', '');}
+            }
         },
         imdb_score:{
             min: 0,
-            max: 10
+            max: 10,
+            showAboveAndBelow: false,
+            numberFormatFunction: numberFormatter(1)
         },
         famousness:{
             min:0,
-            max:14
+            max:14,
+            showAboveAndBelow: true,
+            numberFormatFunction: {
+                to: function(value){if(value>10){return 'famous';}else{return 'unknown';}},
+                from: function(value){return 0;}
+            }
         },
         grossPerBudget:{
             min:0,
-            max:15
+            max:15,
+            showAboveAndBelow: true,
+            numberFormatFunction: {
+                to: function(value){if(value>10){return 'lucrative';}else if(value>2){return 'profit-making';}else{return 'in the red';}},
+                from: function(value){return 0;}
+            }
+
         },
         socialMediaPopularity:{
             min:0,
-            max:80
+            max:80,
+            showAboveAndBelow: true,
+            numberFormatFunction: {
+                to: function(value){if(value>60){return 'Liked';}else{return 'Disliked';}},
+                from: function(value){return 0;}
+            }
         },
         title_year:{
             min:1920,
-            max:2017
+            max:2017,
+            showAboveAndBelow: false,
+            numberFormatFunction: numberFormatter(0)
         }
+
     };
-    filterLimits = JSON.parse(JSON.stringify(initialFilterLimits));
+    initialFilterLimits = JSON.parse(JSON.stringify(filterLimits));
 
     // load data set
     d3.csv(pathToDataSet, preProcess, function(loadedData){
@@ -90,8 +126,8 @@ function update(){
                 for(var property in filterLimits){
                     if(filterLimits.hasOwnProperty(property)){
                         // if(+filterLimits[property].max!==+initialFilterLimits[property].max){console.log(filterLimits[property].max,initialFilterLimits[property].max);}
-                        if((+filterLimits[property].max!==+initialFilterLimits[property].max && d[property]>filterLimits[property].max)
-                            || (+filterLimits[property].min!==+initialFilterLimits[property].min && d[property]<filterLimits[property].min)){
+                        if(((!filterLimits[property].showAboveAndBelow||+filterLimits[property].max!==+initialFilterLimits[property].max) && d[property]>filterLimits[property].max)
+                            || ((!filterLimits[property].showAboveAndBelow||+filterLimits[property].min!==+initialFilterLimits[property].min) && d[property]<filterLimits[property].min)){
                             return false;
                         }
                     }
@@ -349,6 +385,7 @@ function createSliders() {
 function createSlider(container, dataFieldName){
     var slider = document.getElementById(container);
     sliders[dataFieldName] = slider;
+    console.log(filterLimits[dataFieldName].numberFormatFunction);
     noUiSlider.create(slider, {
         start: [ filterLimits[dataFieldName].min, filterLimits[dataFieldName].max ],
         range: {
@@ -359,7 +396,17 @@ function createSlider(container, dataFieldName){
         //     mode: 'range',
         //     density: 18
         // },
-        tooltips: [numberFormatter(0), numberFormatter(0)] // transform numbers to correct format
+        tooltips: [filterLimits[dataFieldName].numberFormatFunction, filterLimits[dataFieldName].numberFormatFunction] // transform numbers to correct format
+//         tooltips: [
+//             {
+//                 to: function(value){return 0;},
+//                 from: function(value){return value;}
+//             },
+//             {
+//                 to: function(value){return 0;},
+//                 from: function(value){return value;}
+//             }
+// ] // transform numbers to correct format
 
     });
     var i=0;
@@ -371,13 +418,13 @@ function createSlider(container, dataFieldName){
         filterLimits[dataFieldName].min = values[0];
         filterLimits[dataFieldName].max = values[1];
         setTimeout(function(){
-            // only update if: last event (slider is not moved anymore) || every 300ms
-            if(i==thisValue || (new Date()).getTime()-timeOfLastUpdate>500){
+            // only update if: last event (slider is not moved anymore) || every 700ms
+            if(i==thisValue || (new Date()).getTime()-timeOfLastUpdate>700){
                 timeOfLastUpdate = (new Date()).getTime();
                 // console.log('Updated:',filterLimits[dataFieldName].min,filterLimits[dataFieldName].max,handle);
                 update();
             }
-        },100);
+        },150);
     });
 
     // create color-coding of slider bar
