@@ -1,7 +1,8 @@
 // parameters
 var data = 0;
-var scatterPlot;
 var pathToDataSet = 'data/movie_metadata.csv';
+
+var scatterPlot;
 var scatterPlotWidth;
 var scatterPlotHeight;
 var scatterPlotDomainX = [50,260]; // range of values to display on the x axis
@@ -10,12 +11,24 @@ var scatterPlotMarginX = [40,40];
 var scatterPlotMarginY = [40,40];
 var scatterPlotX; // scaling function in x direction
 var scatterPlotY; // scaling function in y direction
-var numberOfGenres;
 var scatterPlotColors; // scaling function to map genre to color
+
+var genreScatterPlot;
+var genreScatterPlotWidth;
+var genreScatterPlotHeight;
+var genreScatterPlotDomainX = scatterPlotDomainX; // range of values to display on the x axis
+var genreScatterPlotDomainY; // range of values to display on the y axis (counted from top left)
+var genreScatterPlotMarginX = [40,40];
+var genreScatterPlotMarginY = [40,40];
+var genreScatterPlotX; // scaling function in x direction
+var genreScatterPlotY; // scaling function in y direction
+
+var numberOfGenres;
 var transition;
 var filterLimits;
 var initialFilterLimits;
 var currentlySelectedMovie;
+var previouslySelectedMovie;
 var sliders=[];
 
 window.onload = function () { // do when page is loaded
@@ -25,19 +38,6 @@ window.onload = function () { // do when page is loaded
 function initialization() {
     console.log('Initializing...');
     d3.selectAll('.spinning-animation').classed('hidden', false); //start loading animation
-
-    // insert svg
-    scatterPlot = d3.select('#scatterPlot').append('svg').attr('width','100%').attr('height','100%');
-    scatterPlot = scatterPlot.append('g').style('pointer-events', 'all'); // group containing everything
-    var zoom = d3.zoom()
-        .scaleExtent([1, 10])
-        .on('zoom', zoomed);
-    scatterPlot.call(zoom);
-    scatterPlot.append('rect')
-        .attr('width', '100%')
-        .attr('height', '100%')
-        .style('fill', 'none');
-    scatterPlot = scatterPlot.append('g').attr('id','thisIsTheContainerForEverything');
 
     // specify transition settings
     transition = d3.transition().duration(850).delay(100);
@@ -112,21 +112,28 @@ function initialization() {
 
 }
 
-function update(){
-    // add items to scatter plot
-    var rectsExistingYet = scatterPlot.selectAll('rect')
-        .data(data.filter(function(d) {
-                for(var property in filterLimits){
-                    if(filterLimits.hasOwnProperty(property)){
-                        // if(+filterLimits[property].max!==+initialFilterLimits[property].max){console.log(filterLimits[property].max,initialFilterLimits[property].max);}
-                        if(((!filterLimits[property].showAboveAndBelow||+filterLimits[property].max!==+initialFilterLimits[property].max) && d[property]>filterLimits[property].max)
-                            || ((!filterLimits[property].showAboveAndBelow||+filterLimits[property].min!==+initialFilterLimits[property].min) && d[property]<filterLimits[property].min)){
-                            return false;
-                        }
+function update() {
+    var updatedData =
+        data.filter(function(d) {
+            for(var property in filterLimits){
+                if(filterLimits.hasOwnProperty(property)){
+                    // if(+filterLimits[property].max!==+initialFilterLimits[property].max){console.log(filterLimits[property].max,initialFilterLimits[property].max);}
+                    if(((!filterLimits[property].showAboveAndBelow||+filterLimits[property].max!==+initialFilterLimits[property].max) && d[property]>filterLimits[property].max)
+                        || ((!filterLimits[property].showAboveAndBelow||+filterLimits[property].min!==+initialFilterLimits[property].min) && d[property]<filterLimits[property].min)){
+                        return false;
                     }
                 }
-                return true;
-            }),
+            }
+            return true;
+        });
+    updateScatterplot(updatedData);
+    updateGenreScatterplot(updatedData);
+}
+
+function updateScatterplot(updatedData){
+    // add items to scatter plot
+    var rectsExistingYet = scatterPlot.selectAll('rect')
+        .data(updatedData,
             keyFunction);
 
     // remove filtered items
@@ -252,7 +259,8 @@ function update(){
 }
 
 function updateSidebar(){
-    if(currentlySelectedMovie!==undefined){
+    if(currentlySelectedMovie!==undefined && previouslySelectedMovie !== currentlySelectedMovie){
+        previouslySelectedMovie = currentlySelectedMovie;
         d3.select('#movieInfos').attr('class','visible');
         d3.select('#movieTitle').text(currentlySelectedMovie['movie_title']);
         d3.select('#movieTitleLink').attr('href',currentlySelectedMovie['movie_imdb_link']);
@@ -309,14 +317,25 @@ function selectSimilarMovieByButton(id){
     update();
 }
 
-function finishedLoadingDataset(){
-    createSliders();
+function createScatterplot() {
+    // insert svg
+    scatterPlot = d3.select('#scatterPlot').append('svg').attr('width','100%').attr('height','100%');
+    scatterPlot = scatterPlot.append('g').style('pointer-events', 'all'); // group containing everything
+    var zoom = d3.zoom()
+        .scaleExtent([1, 10])
+        .on('zoom', zoomed);
+    scatterPlot.call(zoom);
+    scatterPlot.append('rect')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .style('fill', 'none');
+    scatterPlot = scatterPlot.append('g').attr('id','thisIsTheContainerForEverything');
 
     // calculate scale
     scatterPlotWidth = d3.select('#scatterPlot').node().getBoundingClientRect().width;
     scatterPlotHeight = d3.select('#scatterPlot').node().getBoundingClientRect().height;
-    scatterPlotX = d3.scaleLinear().domain(scatterPlotDomainX).range([scatterPlotMarginX[0],scatterPlotWidth-scatterPlotMarginX[1]]); // scale function
-    scatterPlotY = d3.scaleLinear().domain(scatterPlotDomainY).range([scatterPlotMarginY[0],scatterPlotHeight-scatterPlotMarginY[1]]); // scale function
+    scatterPlotX = d3.scaleLinear().domain(scatterPlotDomainX).range([scatterPlotMarginX[0], scatterPlotWidth - scatterPlotMarginX[1]]); // scale function
+    scatterPlotY = d3.scaleLinear().domain(scatterPlotDomainY).range([scatterPlotMarginY[0], scatterPlotHeight - scatterPlotMarginY[1]]); // scale function
     scatterPlotColors = d3.scaleOrdinal(d3.schemeCategory20);
 
     // axis
@@ -324,23 +343,142 @@ function finishedLoadingDataset(){
     var yAxis = d3.axisLeft(scatterPlotY);
     var originX = scatterPlotX(scatterPlotDomainX[0]);
     var originY = scatterPlotY(scatterPlotDomainY[1]); // as y is the other way round (from imdB score 10 to 0)
-    scatterPlot.append('g').attr('transform','translate('+0+','+originY+')').call(xAxis);
-    scatterPlot.append('g').attr('transform','translate('+originX+','+0+')').call(yAxis);
+    scatterPlot.append('g').attr('transform', 'translate(' + 0 + ',' + originY + ')').call(xAxis);
+    scatterPlot.append('g').attr('transform', 'translate(' + originX + ',' + 0 + ')').call(yAxis);
     // axis labels
     scatterPlot.append('text') //https://stackoverflow.com/questions/11189284/d3-axis-labeling
         // .attr('class', 'x label')
         .attr('text-anchor', 'end')
-        .attr('x', scatterPlotWidth/2)
-        .attr('y', scatterPlotHeight - scatterPlotMarginY[1]+30)
+        .attr('x', scatterPlotWidth / 2)
+        .attr('y', scatterPlotHeight - scatterPlotMarginY[1] + 30)
         .text('Duration');
     scatterPlot.append('text')
         // .attr('class', 'y label')
         .attr('text-anchor', 'end')
-        .attr('x', -scatterPlotHeight/2) // x and y are swapped due to rotation
-        .attr('y', scatterPlotMarginX[0]-20)
+        .attr('x', -scatterPlotHeight / 2) // x and y are swapped due to rotation
+        .attr('y', scatterPlotMarginX[0] - 20)
         // .attr('dy', '.75em')
         .attr('transform', 'rotate(-90)')
         .text('Score');
+}
+
+function createGenreScatterplot(){
+    // insert svg
+    genreScatterPlot = d3.select('#genreScatterplot').append('svg').attr('width','100%').attr('height','100%');
+    // genreScatterPlot = scatterPlot.append('g').style('pointer-events', 'all'); // group containing everything
+    // var zoom = d3.zoom()
+    //     .scaleExtent([1, 10])
+    //     .on('zoom', zoomed);
+    // genreScatterPlot.call(zoom);
+    // genreScatterPlot.append('rect')
+    //     .attr('width', '100%')
+    //     .attr('height', '100%')
+    //     .style('fill', 'none');
+    // genreScatterPlot = genreScatterPlot.append('g').attr('id','thisIsTheContainerForEverything');
+
+    // calculate scale
+    genreScatterPlotWidth = d3.select('#genreScatterplot').node().getBoundingClientRect().width;
+    genreScatterPlotHeight = d3.select('#genreScatterplot').node().getBoundingClientRect().height;
+    genreScatterPlotDomainX = scatterPlotDomainX; // same domain as other scatterplot
+    genreScatterPlotDomainY = [0,numberOfGenres-1];
+    genreScatterPlotX = d3.scaleLinear().domain(genreScatterPlotDomainX).range([genreScatterPlotMarginX[0],genreScatterPlotWidth-genreScatterPlotMarginX[1]]); // scale function
+    genreScatterPlotY = d3.scaleLinear().domain(genreScatterPlotDomainY).range([genreScatterPlotMarginY[0],genreScatterPlotHeight-genreScatterPlotMarginY[1]]); // scale function
+
+    // axis
+    var xAxis = d3.axisBottom(genreScatterPlotX);
+    // var yAxis = d3.axisLeft(genreScatterPlotY);
+    var originX = genreScatterPlotX(genreScatterPlotDomainX[0]); // same domain as other scatterplot
+    var originY = genreScatterPlotY(genreScatterPlotDomainY[1]); // as y is the other way round (from imdB score 10 to 0)
+    genreScatterPlot.append('g').attr('transform','translate('+0+','+originY+')').call(xAxis);
+    // genreScatterPlot.append('g').attr('transform','translate('+originX+','+0+')').call(yAxis);
+
+    // axis labels
+    genreScatterPlot.append('text') //https://stackoverflow.com/questions/11189284/d3-axis-labeling
+        // .attr('class', 'x label')
+        .attr('text-anchor', 'end')
+        .attr('x', genreScatterPlotWidth/2)
+        .attr('y', genreScatterPlotHeight - genreScatterPlotMarginY[1]+30)
+        .text('Duration');
+    // genreScatterPlot.append('text')
+    //     // .attr('class', 'y label')
+    //     .attr('text-anchor', 'end')
+    //     .attr('x', -genreScatterPlotHeight/2) // x and y are swapped due to rotation
+    //     .attr('y', genreScatterPlotMarginX[0]-20)
+    //     // .attr('dy', '.75em')
+    //     .attr('transform', 'rotate(-90)')
+    //     .text('Score');
+    // updateGenreScatterplot();
+}
+function updateGenreScatterplot(updatedData){
+// add items to scatter plot
+    var rectsExistingYet = genreScatterPlot.selectAll('rect')
+        .data(updatedData, keyFunction);
+
+    // remove filtered items
+    rectsExistingYet.exit()
+        .transition(transition)
+        .attr('width', function(d){
+            return 0;
+        })
+        .attr('height', function(d){
+            return 0;
+        })
+        .remove();
+
+    var radius = 2;
+
+    // add new items
+    var newlyAddedRects = rectsExistingYet.enter().append('circle');
+    newlyAddedRects
+        .attr('cx', function(d) {
+            return genreScatterPlotX(d['duration']);
+        })
+        .attr('cy', function(d) {
+            return genreScatterPlotY(d['genreColor']);
+        })
+        .attr('r', function(){
+            // return d.famousness;
+            return 0; // transition is handling this (see below)
+        })
+        .attr('fill', function(){
+            // return d['famousness'];
+            return 'black';
+        })
+        .on('mouseover', function(){
+            var minSizeOnHover = 15; // 15 pixel minimum size of items when hovered
+            d3.select(this).transition().duration(300)
+                .attr('r', function(){return 2*radius;})
+        })
+        .on('mouseout', function(){
+            d3.select(this).transition().duration(300)
+                .attr('r', function(){return radius;})
+        })
+        .on('click', function(d){
+            console.log('Clicked on ',d);
+            currentlySelectedMovie = d;
+            update();
+        })
+        .transition(transition)
+        .attr('r', function(d){
+            return radius;
+        });
+    // for(var r in newlyAddedRects){
+    //     if(r['movie_title']==='King Kong'){
+    //         console.log('King Kong added!');
+    //     }
+    // }
+
+    // var newLine = '&#013;&#010;';
+    var newLine = '\r\n';
+    newlyAddedRects.append('svg:title')
+        .text(function(d) { return d['movie_title']+' ('+d['title_year']+')'+newLine+d['duration']+'min'; });
+}
+
+function finishedLoadingDataset(){
+
+    createScatterplot();
+    createGenreScatterplot();
+    createSliders();
 
     update();
 
@@ -399,7 +537,6 @@ function createSliders() {
 function createSlider(container, dataFieldName){
     var slider = document.getElementById(container);
     sliders[dataFieldName] = slider;
-    console.log(filterLimits[dataFieldName].numberFormatFunction);
     noUiSlider.create(slider, {
         start: [ filterLimits[dataFieldName].min, filterLimits[dataFieldName].max ],
         range: {

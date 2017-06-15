@@ -69,6 +69,13 @@
                 <h5>Social Media Popularity</h5>
                 <div id="socialMediaSlider"></div>
             </div>
+            <div id="shortcuts">
+                <h5>Shortcuts</h5>
+                <button onclick="reload()">Reset</button>
+                <button onclick="loadClassicsSettings()">Classics</button>
+                <button onclick="loadShortfilmsSettings()">Shortfilms</button>
+                <button onclick="loadBlockbusterSettings()">Blockbuster</button>
+            </div>
         </aside>
         <section id="centralScatterplotArea" class="col-sm-7 full-height no-padding">
             <div id="scatterPlot" class="scatterPlot">
@@ -81,7 +88,7 @@
             </div>
         </section>
         <aside id="rightFilters" class="filter-area col-sm-3 full-height .text-center">
-            <div class="filterScatterplot"></div>
+            <div id="genreScatterplot"></div>
             <div class="rightSidebarInfos">
                 <div id="movieInfos">
                     <a id="movieTitleLink"><h4 id="movieTitle"></h4></a>
@@ -98,13 +105,7 @@
                     <h5>Similar Movies</h5><div id="similarMovies"></div>
                     <div id="moreRelatedMovies"></div>
                 </div>
-                <div id="shortcuts">
-                    <h5>Shortcuts</h5>
-                    <button onclick="reload()">Reset</button>
-                    <button onclick="loadClassicsSettings()">Classics</button>
-                    <button onclick="loadShortfilmsSettings()">Shortfilms</button>
-                    <button onclick="loadBlockbusterSettings()">Blockbuster</button>
-                </div>
+
             </div>
         </aside>
     </div>
