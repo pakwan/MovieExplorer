@@ -149,12 +149,19 @@ function updateScatterplot(updatedData){
 
     // update all still visible items
     rectsExistingYet
-        .attr('stroke-width', function(d) {
+        // .attr('stroke-width', function(d) {
+        //     if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+        //         return Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+        //     } else { // currently selected
+        //         // console.log('Fat stroke width: ',d);
+        //         return 3*Math.min(Math.max(2.5, 2*d['famousness'] / 10), 4.0);
+        //     }
+        // })
+        .attr('fill', function(d){
             if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
-                return Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+                return 'transparent';
             } else { // currently selected
-                // console.log('Fat stroke width: ',d);
-                return 3*Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+                return scatterPlotColors(d['genreColor']);
             }
         })
         .attr('opacity', function(d) {
@@ -301,6 +308,9 @@ function updateSidebar(){
                     }
 
                 }
+                if(similarMovies.length>=12){
+                    break; // 12 similar movies are enough (performance)
+                }
             }
             console.log('Found similar movies: ',similarMovies);
         },0);
@@ -388,7 +398,7 @@ function createGenreScatterplot(){
     var xAxis = d3.axisBottom(genreScatterPlotX);
     // var yAxis = d3.axisLeft(genreScatterPlotY);
     var originX = genreScatterPlotX(genreScatterPlotDomainX[0]); // same domain as other scatterplot
-    var originY = genreScatterPlotY(genreScatterPlotDomainY[1]); // as y is the other way round (from imdB score 10 to 0)
+    var originY = genreScatterPlotY(genreScatterPlotDomainY[1]+1); // as y is the other way round (from imdB score 10 to 0)
     genreScatterPlot.append('g').attr('transform','translate('+0+','+originY+')').call(xAxis);
     // genreScatterPlot.append('g').attr('transform','translate('+originX+','+0+')').call(yAxis);
 
@@ -411,25 +421,55 @@ function createGenreScatterplot(){
 }
 function updateGenreScatterplot(updatedData){
 // add items to scatter plot
-    var rectsExistingYet = genreScatterPlot.selectAll('rect')
+    var existingYet = genreScatterPlot.selectAll('circle')
         .data(updatedData, keyFunction);
 
     // remove filtered items
-    rectsExistingYet.exit()
+    existingYet.exit()
         .transition(transition)
-        .attr('width', function(d){
-            return 0;
-        })
-        .attr('height', function(d){
+        .attr('r', function(d){
             return 0;
         })
         .remove();
 
-    var radius = 2;
+    var radius = 4;
+
+    // update all still visible items
+    existingYet
+        .attr('fill-opacity', function(d){
+            if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+                return '0.2';
+            } else { // currently selected
+                return '1.0';
+            }
+        })
+        .attr('r', function(d){
+            if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+                return radius;
+            } else { // currently selected
+                return 3*radius;
+            }
+        })
+
+        .attr('stroke-width', function(d) {
+            if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+                return Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+            } else { // currently selected
+                // console.log('Fat stroke width: ',d);
+                return 3*Math.min(Math.max(1.0, d['famousness'] / 10), 2.0);
+            }
+        })
+        .attr('opacity', function(d) {
+            if (currentlySelectedMovie===undefined || currentlySelectedMovie.id !== d.id) { // currently not selected
+                return 0.68;
+            } else { // currently selected
+                return 1;
+            }
+        });
 
     // add new items
-    var newlyAddedRects = rectsExistingYet.enter().append('circle');
-    newlyAddedRects
+    var newlyAdded = existingYet.enter().append('circle');
+    newlyAdded
         .attr('cx', function(d) {
             return genreScatterPlotX(d['duration']);
         })
@@ -437,21 +477,31 @@ function updateGenreScatterplot(updatedData){
             return genreScatterPlotY(d['genreColor']);
         })
         .attr('r', function(){
-            // return d.famousness;
             return 0; // transition is handling this (see below)
         })
         .attr('fill', function(){
-            // return d['famousness'];
-            return 'black';
+            return '#494949';
+        })
+        .attr('fill-opacity', function(){
+            return '0.2';
         })
         .on('mouseover', function(){
-            var minSizeOnHover = 15; // 15 pixel minimum size of items when hovered
             d3.select(this).transition().duration(300)
-                .attr('r', function(){return 2*radius;})
+                .attr('r', function(){return 3*radius;})
+                .attr('fill-opcaity', function(){
+                    return '1.0';
+                });
         })
-        .on('mouseout', function(){
-            d3.select(this).transition().duration(300)
-                .attr('r', function(){return radius;})
+        .on('mouseout', function(d) {
+            if (currentlySelectedMovie === undefined || d.id !== currentlySelectedMovie.id) { // only if not selected
+                d3.select(this).transition().duration(300)
+                    .attr('r', function () {
+                        return radius;
+                    })
+                    .attr('fill-opacity', function () {
+                        return '0.3';
+                    });
+            }
         })
         .on('click', function(d){
             console.log('Clicked on ',d);
@@ -470,7 +520,7 @@ function updateGenreScatterplot(updatedData){
 
     // var newLine = '&#013;&#010;';
     var newLine = '\r\n';
-    newlyAddedRects.append('svg:title')
+    newlyAdded.append('svg:title')
         .text(function(d) { return d['movie_title']+' ('+d['title_year']+')'+newLine+d['duration']+'min'; });
 }
 
