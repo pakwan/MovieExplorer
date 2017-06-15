@@ -53,13 +53,6 @@ function initialization() {
             min: scatterPlotDomainX[0],
             max: scatterPlotDomainX[1],
             showAboveAndBelow: false,
-            debug: {
-                a: 10,
-                b: 12,
-                c: function (asd) {
-                    return asd;
-                }
-            },
             numberFormatFunction: {
                 to: function(value){return value.toFixed(0)+'min';},
                 from: function(value){return +value.replace('min', '');}
@@ -76,7 +69,7 @@ function initialization() {
             max:14,
             showAboveAndBelow: true,
             numberFormatFunction: {
-                to: function(value){if(value>10){return 'famous';}else{return 'unknown';}},
+                to: function(value){if(value>10){return 'famous';}else if(value>7){return 'known';} else{return 'unknown';}},
                 from: function(value){return 0;}
             }
         },
@@ -95,7 +88,7 @@ function initialization() {
             max:80,
             showAboveAndBelow: true,
             numberFormatFunction: {
-                to: function(value){if(value>60){return 'Liked';}else{return 'Disliked';}},
+                to: function(value){if(value>50){return 'Liked';}else{return 'Disliked';}},
                 from: function(value){return 0;}
             }
         },
@@ -368,11 +361,32 @@ function reload(){
     location.reload();
 }
 function loadClassicsSettings(){ // set the filters in order to display only classics
-    // sliders['grossPerBudget'].noUiSlider.set([3,initialFilterLimits.grossPerBudget.max]);
-    sliders['famousness'].noUiSlider.set([11,initialFilterLimits.famousness.max]);
-    sliders['imdb_score'].noUiSlider.set([8,initialFilterLimits.imdb_score.max]);
+    sliders['famousness'].noUiSlider.set([8,initialFilterLimits.famousness.max]);
+    sliders['imdb_score'].noUiSlider.set([7.2,initialFilterLimits.imdb_score.max]);
+    sliders['title_year'].noUiSlider.set([initialFilterLimits.title_year.min,1984]);
+    sliders['socialMediaPopularity'].noUiSlider.set([20,initialFilterLimits.socialMediaPopularity.max]);
+    sliders['minAge'].noUiSlider.set([initialFilterLimits.minAge.min,initialFilterLimits.minAge.max]);
+    sliders['duration'].noUiSlider.set([initialFilterLimits.duration.min,initialFilterLimits.duration.max]);
+    sliders['grossPerBudget'].noUiSlider.set([initialFilterLimits.grossPerBudget.min,initialFilterLimits.grossPerBudget.max]);
 }
-
+function loadShortfilmsSettings(){ // set the filters in order to display only classics
+    sliders['famousness'].noUiSlider.set([initialFilterLimits.famousness.min,initialFilterLimits.famousness.max]);
+    sliders['imdb_score'].noUiSlider.set([initialFilterLimits.imdb_score.min,initialFilterLimits.imdb_score.max]);
+    sliders['title_year'].noUiSlider.set([initialFilterLimits.title_year.min,initialFilterLimits.title_year.max]);
+    sliders['socialMediaPopularity'].noUiSlider.set([initialFilterLimits.socialMediaPopularity.min,initialFilterLimits.socialMediaPopularity.max]);
+    sliders['minAge'].noUiSlider.set([initialFilterLimits.minAge.min,initialFilterLimits.minAge.max]);
+    sliders['duration'].noUiSlider.set([initialFilterLimits.duration.min,80]);
+    sliders['grossPerBudget'].noUiSlider.set([initialFilterLimits.grossPerBudget.min,initialFilterLimits.grossPerBudget.max]);
+}
+function loadBlockbusterSettings(){ // set the filters in order to display only classics
+    sliders['famousness'].noUiSlider.set([7,initialFilterLimits.famousness.max]);
+    sliders['imdb_score'].noUiSlider.set([initialFilterLimits.imdb_score.min,initialFilterLimits.imdb_score.max]);
+    sliders['title_year'].noUiSlider.set([1980,initialFilterLimits.title_year.max]);
+    sliders['socialMediaPopularity'].noUiSlider.set([30,initialFilterLimits.socialMediaPopularity.max]);
+    sliders['minAge'].noUiSlider.set([initialFilterLimits.minAge.min,initialFilterLimits.minAge.max]);
+    sliders['duration'].noUiSlider.set([initialFilterLimits.duration.min,initialFilterLimits.duration.max]);
+    sliders['grossPerBudget'].noUiSlider.set([4,initialFilterLimits.grossPerBudget.max]);
+}
 function createSliders() {
     createSlider('minimumAgeSlider','minAge');
     createSlider('scoreSlider','imdb_score');
@@ -397,17 +411,6 @@ function createSlider(container, dataFieldName){
         //     density: 18
         // },
         tooltips: [filterLimits[dataFieldName].numberFormatFunction, filterLimits[dataFieldName].numberFormatFunction] // transform numbers to correct format
-//         tooltips: [
-//             {
-//                 to: function(value){return 0;},
-//                 from: function(value){return value;}
-//             },
-//             {
-//                 to: function(value){return 0;},
-//                 from: function(value){return value;}
-//             }
-// ] // transform numbers to correct format
-
     });
     var i=0;
     var timeOfLastUpdate = 0;
