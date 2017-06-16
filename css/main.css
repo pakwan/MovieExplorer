@@ -54,14 +54,14 @@ main{
     color: #757575;
 
     /*Advantage of absolute: can be on the right border independently of the width*/
-    /*position: absolute;*/
-    /*top: 25px;*/
-    /*right: 8px;*/
+    position: absolute;
+    top: 25px;
+    right: 8px;
     /*Advantage of relative: can be scrolled if screen is not high enough*/
-    position: relative;
-    right: -89px;
-    top: -29px;
-    margin-bottom: -31px;
+    /*position: relative;*/
+    /*right: -89px;*/
+    /*top: -29px;*/
+    /*margin-bottom: -31px;*/
 
 }
 .scatterPlot {
@@ -103,7 +103,7 @@ h5 {
     /*margin-right: -16px;*/
 }
 #rightFilters {
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 #movieInfos {
     visibility:hidden;
@@ -114,7 +114,7 @@ h5 {
 }
 #similarMovies{
     overflow-y: scroll;
-    height: calc(100% - 230px);
+    height: calc(100% - 203px);
     min-height: 149px;
 }
 .similarMovieButton {
