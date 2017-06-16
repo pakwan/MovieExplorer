@@ -98,9 +98,9 @@ h5 {
 }
 #leftFiltersContainer{
     height: calc(100% - 110px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-right: -16px;
+    /*overflow-y: auto;*/ /*Does not work on big screens*/
+    /*overflow-x: hidden;*/
+    /*margin-right: -16px;*/
 }
 #rightFilters {
     overflow-y: scroll;
