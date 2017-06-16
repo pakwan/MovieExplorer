@@ -6,16 +6,18 @@ html, body{
     overflow-y: hidden; /*strange but seems to be necessary*/
 }
 header{
-    height:50px; /*necessary because of 100%-50px*/
+    height:52px; /*necessary because of 100%-50px*/
     position: relative; /* because of shadow*/
     z-index:10; /*shadow over main content, not the other way round*/
     box-shadow: rgba(75, 82, 87, 0.45) 0 0 4px 2px;
 }
 main{
-    height:calc(100% - 50px);
+    height:calc(100% - 52px);
     z-index:1; /* header shadow over main content, not the other way round*/
 }
-
+#mainRow{
+ overflow-y:hidden;
+}
 .filter-area{
     background: #f8f8f8;
     /*border-right:solid #000000;*/
@@ -84,7 +86,7 @@ h5 {
     height: calc(100% - 70px);
     /*overflow-y:auto;*/
 }
-.rightFilters {
+#rightFilters {
     overflow-y: scroll;
 }
 #movieInfos {
@@ -97,6 +99,7 @@ h5 {
 #similarMovies{
     overflow-y: scroll;
     height: calc(100% - 230px);
+    min-height: 149px;
 }
 .similarMovieButton {
     width: 44%;
@@ -109,6 +112,7 @@ h5 {
 #movieInfosTable{
     width:90%;
     overflow-y: hidden;
+    overflow-x: hidden;
     font-size:0.9em;
 }
 #movieInfosTable th {

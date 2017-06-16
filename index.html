@@ -6,14 +6,13 @@
     <meta name="description" content="Visualization of a movie data set from IMDb">
     <meta name="keywords" content="Visualization, D3, Movies, Films, Interactive, IMDb">
     <meta name="author" content="PW">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--<meta name="viewport" content="width=1400">-->
     <meta name="theme-color" content="#000000">
     <link rel="icon" sizes="192x192" href="img/favicon.png">
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="lib/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>-->
 
     <!--My CSS-->
     <link rel="stylesheet" href="css/main.css">
@@ -42,7 +41,7 @@
 </header>
 <main class="container-fluid">
     <div id="mainRow" class="row full-height">
-        <aside id="leftFilters" class="filter-area col-sm-2 full-height">
+        <aside id="leftFilters" class="filter-area col-xs-2 full-height">
             <div id="leftFiltersContainer">
                 <div id="visibleMoviesCounter"></div>
                 <h3>Filters</h3>
@@ -73,13 +72,13 @@
             </div>
             <div id="shortcuts">
                 <h5>Shortcuts</h5>
-                <button onclick="reload()">Reset</button>
-                <button onclick="loadClassicsSettings()">Classics</button>
-                <button onclick="loadShortfilmsSettings()">Shortfilms</button>
-                <button onclick="loadBlockbusterSettings()">Blockbuster</button>
+                <button class="btn btn-sm" onclick="reload()">Reset</button>
+                <button class="btn btn-sm" onclick="loadClassicsSettings()">Classics</button>
+                <button class="btn btn-sm" onclick="loadShortfilmsSettings()">Shortfilms</button>
+                <button class="btn btn-sm" onclick="loadBlockbusterSettings()">Blockbuster</button>
             </div>
         </aside>
-        <section id="centralScatterplotArea" class="col-sm-7 full-height no-padding">
+        <section id="centralScatterplotArea" class="col-xs-7 full-height no-padding">
             <div id="scatterPlot" class="scatterPlot">
             </div>
             <div id="yearFilter" class="yearFilter filter-area">
@@ -89,7 +88,7 @@
                 </div>
             </div>
         </section>
-        <aside id="rightFilters" class="filter-area col-sm-3 full-height .text-center">
+        <aside id="rightFilters" class="filter-area col-xs-3 full-height .text-center">
             <div id="genreScatterplot"></div>
             <div class="rightSidebarInfos">
                 <div id="movieInfos">
