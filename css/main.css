@@ -24,6 +24,7 @@ main{
     box-shadow: rgba(75, 82, 87, 0.45) 0 0 3px 2px;
     border-color: #e7e7e7;
     overflow-y:auto;
+    overflow-x: hidden;
 }
 .filterContainer{
     margin-top: 20px;
@@ -49,9 +50,19 @@ main{
     margin-top:8px;
 }
 #visibleMoviesCounter{
-    position: absolute;
-    top: 25px;
-    right: 8px;
+    font-size: 0.84em;
+    color: #757575;
+
+    /*Advantage of absolute: can be on the right border independently of the width*/
+    /*position: absolute;*/
+    /*top: 25px;*/
+    /*right: 8px;*/
+    /*Advantage of relative: can be scrolled if screen is not high enough*/
+    position: relative;
+    right: -89px;
+    top: -29px;
+    margin-bottom: -31px;
+
 }
 .scatterPlot {
     height: calc(100% - 87px);
@@ -82,9 +93,14 @@ a h4 {
 h5 {
     font-weight:bold;
 }
+#shortcuts button {
+    margin-bottom: 3px;
+}
 #leftFiltersContainer{
-    height: calc(100% - 70px);
-    /*overflow-y:auto;*/
+    height: calc(100% - 110px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-right: -16px;
 }
 #rightFilters {
     overflow-y: scroll;

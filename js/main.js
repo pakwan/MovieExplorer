@@ -139,7 +139,7 @@ function update() {
 
 function updateScatterplot(updatedData){
     // add items to scatter plot
-    var rectsExistingYet = scatterPlot.selectAll('rect')
+    var rectsExistingYet = scatterPlot.select('#dataContainer').selectAll('rect')
         .data(updatedData,
             keyFunction);
 
@@ -377,6 +377,87 @@ function createScatterplot() {
         // .attr('dy', '.75em')
         .attr('transform', 'rotate(-90)')
         .text('Score');
+
+    // legend
+    var legend = scatterPlot.append('g').attr('id','legend');
+    var legendHeight = 113;
+    var legendWidth = 91;
+    var legendMarginX = 0;
+    var legendMarginY = 8;
+    var legendPaddingX = 4;
+    var legendPaddingY = 4;
+    var legendOrigin = [
+        scatterPlotWidth - scatterPlotMarginX[1] - legendWidth - legendMarginX,
+        scatterPlotHeight - scatterPlotMarginY[1] - legendHeight - legendMarginY
+    ];
+    var legendVerticalSpace = 20;
+    legend.append('rect') // background
+        .attr('x', legendOrigin[0])
+        .attr('y', legendOrigin[1])
+        .attr('width', legendWidth)
+        .attr('height', legendHeight)
+        .attr('fill','#151515')
+        .attr('fill-opacity',0.1);
+    legend.append('rect') // small circle
+        .attr('x', legendOrigin[0]+legendPaddingX+8)
+        .attr('y', legendOrigin[1]+legendPaddingY+8)
+        .attr('width', 5)
+        .attr('height', 5)
+        .attr('rx', 2.5)
+        .attr('stroke-width', 1)
+        .attr('stroke','#111111')
+        .attr('fill', function(){return 'transparent';});
+    legend.append('text') // text of small circle
+        .attr('x', legendOrigin[0]+legendPaddingX+10+15)
+        .attr('y', legendOrigin[1]+legendPaddingY+10+5)
+        .attr('font-size','0.85em')
+        .text('Unknown');
+    legend.append('rect') // big circle
+        .attr('x', legendOrigin[0]+legendPaddingX+8-4.5)
+        .attr('y', legendOrigin[1]+legendPaddingY+8-4.5+legendVerticalSpace)
+        .attr('width', 14)
+        .attr('height', 14)
+        .attr('rx',7)
+        .attr('stroke-width', 1.5)
+        .attr('stroke','#111111')
+        .attr('fill', function(){return 'transparent';});
+    legend.append('text') // text of big circle
+        .attr('x', legendOrigin[0]+legendPaddingX+10+15)
+        .attr('y', legendOrigin[1]+legendPaddingY+10+5+legendVerticalSpace)
+        .attr('font-size','0.85em')
+        .text('Famous');
+    legend.append('rect') // English Circle
+        .attr('x', legendOrigin[0]+legendPaddingX+8-2)
+        .attr('y', legendOrigin[1]+legendPaddingY+8-2+3*legendVerticalSpace)
+        .attr('width', 9)
+        .attr('height', 9)
+        .attr('rx', 4.5)
+        .attr('stroke-width', 1.1)
+        .attr('stroke','#111111')
+        .attr('fill', function(){return 'transparent';});
+    legend.append('text') // text of english circle
+        .attr('x', legendOrigin[0]+legendPaddingX+10+15)
+        .attr('y', legendOrigin[1]+legendPaddingY+10+5+3*legendVerticalSpace)
+        .attr('font-size','0.85em')
+        .text('English');
+    legend.append('rect') // English Circle
+        .attr('x', legendOrigin[0]+legendPaddingX+8-2)
+        .attr('y', legendOrigin[1]+legendPaddingY+8-2+4*legendVerticalSpace)
+        .attr('width', 9)
+        .attr('height', 9)
+        .attr('rx', 0)
+        .attr('stroke-width', 1.1)
+        .attr('stroke','#111111')
+        .attr('fill', function(){return 'transparent';});
+    legend.append('text') // text of other language rect
+        .attr('x', legendOrigin[0]+legendPaddingX+10+15)
+        .attr('y', legendOrigin[1]+legendPaddingY+10+5+4*legendVerticalSpace)
+        .attr('font-size','0.85em')
+        .text('Others');
+
+    // container for datapoints (necessary because else the legend etc are also treated as datapoints
+    scatterPlot.append('g').attr('id','dataContainer');
+
 }
 
 function createGenreScatterplot(){
